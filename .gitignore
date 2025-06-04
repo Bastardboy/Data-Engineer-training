@@ -5,6 +5,7 @@ lib/
 lib64/
 pyvenv.cfg
 share/
+/lib64
 
 # Archivos compilados de Python
 __pycache__/
