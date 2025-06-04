@@ -31,7 +31,7 @@ CREATE TABLE DIM_DATES (
     full_date DATE UNIQUE NOT NULL,               -- fecha completa en formato DATE (ej. 1996-09-13) 
     day INTEGER NOT NULL,
     month INTEGER NOT NULL,
-    year INTEGER NOT NULL,
+    year INTEGER NOT NULL
 );
 
 -- tabla de tipo transaccion (2 casos)
