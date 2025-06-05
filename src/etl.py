@@ -55,9 +55,9 @@ def load_json_file(file_path):
         print(f"Error: JSON cant be decode {file_path}")
         return None
 
-# Function to transform the $numberLong to a datetime (mongodb format to datetime)
 def formate_timestamp(date_data):
     """
+    Function to transform the $numberLong to a datetime (mongodb format to datetime)
     2 cases:
      2.1 -> date is in numberlong format {"$date": {"$numberLong":-199843200000}}
      2.2 -> date is in isoformat {"$date": "2020-01-01T00:00:00.000Z"}
@@ -68,14 +68,12 @@ def formate_timestamp(date_data):
 
     value = date_data['$date']
 
-    # Caso 1: timestamp en milisegundos
     if isinstance(value, dict) and '$numberLong' in value:
         try:
             return datetime.fromtimestamp(int(value['$numberLong']) / 1000)
         except Exception:
             return None
 
-    # Caso 2: string ISO
     if isinstance(value, str):
         try:
             return datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -277,6 +275,28 @@ def transformation_dim_type_transactions(conn, transactions_data):
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting transaction types: {e}")
 
+def transformation_fact_transactions(conn, transactions_data):
+    """
+    now is time to create the center table of the star,
+    but for that we need use the information of the previous tables
+
+    my ideas
+    - use te data from the other json is not viable, to much processing so rip code
+    - i should put the formated data on variables sooo i can reuse, but for now lets going to test the first json
+    - re use the structure from prev functions is ideal, but this function is going to have much other steps
+    - okay time to shine
+    """
+    cursor = conn.cursor()
+    fact_records_to_insert = []
+
+    
+    for account_trans in transactions_data:
+        account_id_og = account_trans['account_id']
+        print(f"Processing account_id: {account_id_og}")
+    
+    print(f'We entered to transformation_fact_transactions with {len(transactions_data)} transactions')
+
+    
 
 def run_etl():
     """Main function, where all the ETL process is going to be executed."""
@@ -306,9 +326,12 @@ def run_etl():
 
         transformation_dim_dates(conn, transactions_data)
         trasnformation_dim_symbol(conn, transactions_data)
+
         transformation_dim_customers(conn, customers_data)
         transformation_dim_accounts(conn, accounts_data)
+
         transformation_dim_type_transactions(conn, transactions_data)
+        transformation_fact_transactions(conn, transactions_data)
 
     except sqlite3.DatabaseError as e:
         print(f"Database error: {e}")
