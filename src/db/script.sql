@@ -21,8 +21,8 @@ CREATE TABLE DIM_CUSTOMERS (
 CREATE TABLE DIM_ACCOUNTS (
     ID_ACCOUNT_UNIQUE INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada def previa (pk)
     id_account INTEGER UNIQUE NOT NULL,           -- clave natural: id de la cuenta que tiene el cliente (ej. 721914)
-    limite REAL,                                  -- dinero disponible en la cuenta
-    productos TEXT                                -- La lista de productos en la cuenta products['name1',...]
+    limit_budget REAL,                                  -- dinero disponible en la cuenta
+    products TEXT                                -- La lista de productos en la cuenta products['name1',...]
 );
 
 -- tabla de las fechas (lo veo para resolver las preguntas de mes, birthdate etc)

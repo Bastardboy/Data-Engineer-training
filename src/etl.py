@@ -202,6 +202,50 @@ def transformation_dim_customers(conn, customers_data):
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting customers: {e}")
 
+
+def transformation_dim_accounts(conn, accounts_data):
+    """
+    Now we need to extract the accounts data
+    in this case accounts_id are unique
+    limit of account never is 0 or null, so we can use get('limit)
+    and prodcuts are in a list [], so we can use str to convert it to a string
+    """
+    cursor = conn.cursor()
+    register_accounts = []
+
+    for account in accounts_data:
+        id_account = account.get('account_id')
+        limit = account.get('limit', 0)
+
+        # Difference between previous function, products can be same but on different accounts
+        if account.get('products'):
+            products = str(account['products'])
+        else:
+            products = None
+
+        register_accounts.append((id_account, limit, products))    
+
+    #     -- tabla para las cuentas
+    # CREATE TABLE DIM_ACCOUNTS (
+    #     ID_ACCOUNT_UNIQUE INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada def previa (pk)
+    #     id_account INTEGER UNIQUE NOT NULL,           -- clave natural: id de la cuenta que tiene el cliente (ej. 721914)
+    #     limit_budget REAL,                                  -- dinero disponible en la cuenta
+    #     products TEXT                                -- La lista de productos en la cuenta products['name1',...]
+    # );
+    # now we fix some words on script (esp to eng)
+    # limit and products didnt added to db -> this fix by delete the previous table; but drop table didnt work 0-0
+    # exist 1745 accounts_id on jsonfile everyone is unique, but output say UNIQUE failed, only with ignore works
+    # but get the 1745 0-0 
+
+
+    try:
+        cursor.executemany("""
+            INSERT OR IGNORE INTO DIM_ACCOUNTS (id_account, limit_budget, products) VALUES (?, ?, ?)""", register_accounts)
+        conn.commit()
+        print(f"Inserted {len(register_accounts)} accounts into DIM_ACCOUNTS.")
+    except sqlite3.DatabaseError as e:
+        print(f"Database error while inserting accounts: {e}")
+
 def run_etl():
     """Main function, where all the ETL process is going to be executed."""
     conn = None
@@ -231,7 +275,8 @@ def run_etl():
         transformation_dim_dates(conn, transactions_data)
         trasnformation_dim_symbol(conn, transactions_data)
         transformation_dim_customers(conn, customers_data)
-    
+        transformation_dim_accounts(conn, accounts_data)
+
     except sqlite3.DatabaseError as e:
         print(f"Database error: {e}")
         if conn:
