@@ -246,6 +246,38 @@ def transformation_dim_accounts(conn, accounts_data):
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting accounts: {e}")
 
+
+def transformation_dim_type_transactions(conn, transactions_data):
+    """ 
+    Now time to extract the tot (type of transaction) (buy or sell) from the transactions
+    """
+    cursor = conn.cursor()
+    unique_tot = set()
+
+    for type_transaction in transactions_data:
+        for transactions in type_transaction['transactions']:
+            transaction_code = transactions.get('transaction_code')
+            if transaction_code:
+                unique_tot.add(transaction_code)
+
+    register_type_transactions = []
+    for tot in sorted(unique_tot):
+        register_type_transactions.append((tot,))
+
+# -- tabla de tipo transaccion (2 casos)
+# CREATE TABLE DIM_TYPE_TRANSACTIONS (
+#     ID_TYPE_TRANSACTION INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada def previa pk (1, o 2 sería para los tipos de transacción)
+#     name_type_transacion TEXT UNIQUE NOT NULL -- si es 'buy', 'sell',
+# );
+    try:
+        cursor.executemany("""
+            INSERT OR IGNORE INTO DIM_TYPE_TRANSACTIONS (name_type_transacion) VALUES (?)""", register_type_transactions)
+        conn.commit()
+        print(f"Inserted {len(register_type_transactions)} unique transaction types into DIM_TYPE_TRANSACTIONS.")
+    except sqlite3.DatabaseError as e:
+        print(f"Database error while inserting transaction types: {e}")
+
+
 def run_etl():
     """Main function, where all the ETL process is going to be executed."""
     conn = None
@@ -276,6 +308,7 @@ def run_etl():
         trasnformation_dim_symbol(conn, transactions_data)
         transformation_dim_customers(conn, customers_data)
         transformation_dim_accounts(conn, accounts_data)
+        transformation_dim_type_transactions(conn, transactions_data)
 
     except sqlite3.DatabaseError as e:
         print(f"Database error: {e}")
