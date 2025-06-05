@@ -179,15 +179,21 @@ def transformation_dim_customers(conn, customers_data):
             if tier == 'Gold':
                 benefits.update(data.get('benefits', []))
 
-        register_customers.append((name, username, birth_date, tier, benefits))
+        if benefits:
+            benifits_str = str(list(benefits))
+        else:
+            benifits_str = None
+
+        register_customers.append((name, username, birth_date, tier, benifits_str))
 
     # ID_CUSTOMER INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada id único del cliente (el pk del id automático)
     # name_customer TEXT,
     # username TEXT UNIQUE NOT NULL,                -- clave natural: Usado para identificar al cliente
     # birthdate DATE,                               -- Fecha de nacimiento
     # tier TEXT,                                    -- tipo de cuenta tier_and_details { }
-    # benefits TEXT,    
-    # An unexpect error happens: Error binding parameter 4 - probably unsupported type.
+    #benefits TEXT,
+    # solved -> An unexpect error happens: Error binding parameter 4 - probably unsupported type.
+    # Database error while inserting customers: UNIQUE constraint failed: DIM_CUSTOMERS.username
     try:
         cursor.executemany("""
             INSERT INTO DIM_CUSTOMERS (name_customer, username, birthdate, tier, benefits) VALUES (?, ?, ?, ?, ?)""", register_customers)
