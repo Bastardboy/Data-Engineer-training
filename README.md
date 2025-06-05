@@ -31,7 +31,9 @@ Prueba técnica para postular al cargo Ingeniero de Datos Jr.
 │   │   ├── sample_analytics.accounts.json
 │   │   ├── sample_analytics.customers.json
 │   │   ├── sample_analytics.transactions.json
-│   │── database.db
+│   │── db/
+│   │   ├── script.sql
+│   │── dw_financial.db 
 │   │── etl.py
 ├── 
 ├── 
