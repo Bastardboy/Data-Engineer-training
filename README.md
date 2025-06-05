@@ -8,6 +8,7 @@ Prueba técnica para postular al cargo Ingeniero de Datos Jr.
 - **Python** - 
 - **Pandas** - 
 - **JSON** -
+- **Datetime** -
 
 ## Resolución de Preguntas
 
