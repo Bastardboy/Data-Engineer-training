@@ -147,6 +147,105 @@ def trasnformation_dim_symbol(conn, transactions_data):
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting symbols: {e}")
 
+def transformation_dim_customers(conn, customers_data):
+    """
+    Now we need to extract the customers data
+    ALSO need to:
+    1. normalize the 'tier and details' and 'benefits' fields
+    2. formated date of birth (can be numberlong or isoformat again) with the prev function
+    """
+    cursor = conn.cursor()
+    register_customers = []
+
+    for customer in customers_data:
+        username = customer.get('username')
+        name = customer.get('name')
+
+        birth_date = customer.get('birthdate')
+        if birth_date:
+            birth_date_formated = formate_timestamp(birth_date) 
+            if birth_date_formated:
+                birth_date = birth_date_formated.date().isoformat()
+            else:
+                print(f"Error: birthdate {birth_date} could not be transformed.")
+                birth_date = None
+        
+        tier = None
+        benefits = set()
+        tier_and_details = customer.get('tier_and_details', {})
+
+        for data in tier_and_details.values():
+            if data.get('active', False):
+                tier = data.get('tier')
+                benefits.update(data.get('benefits', []))
+
+        if benefits:
+            benifits_str = str(list(benefits))
+        else:
+            benifits_str = None
+
+        register_customers.append((name, username, birth_date, tier, benifits_str))
+
+    # ID_CUSTOMER INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada id único del cliente (el pk del id automático)
+    # name_customer TEXT,
+    # username TEXT UNIQUE NOT NULL,                -- clave natural: Usado para identificar al cliente
+    # birthdate DATE,                               -- Fecha de nacimiento
+    # tier TEXT,                                    -- tipo de cuenta tier_and_details { }
+    #benefits TEXT,
+    # solved -> An unexpect error happens: Error binding parameter 4 - probably unsupported type.
+    # Database error while inserting customers: UNIQUE constraint failed: DIM_CUSTOMERS.username
+    try:
+        cursor.executemany("""
+            INSERT OR IGNORE INTO DIM_CUSTOMERS (name_customer, username, birthdate, tier, benefits) VALUES (?, ?, ?, ?, ?)""", register_customers)
+        conn.commit()
+        print(f"Inserted {len(register_customers)} customers into DIM_CUSTOMERS.")
+    except sqlite3.DatabaseError as e:
+        print(f"Database error while inserting customers: {e}")
+
+
+def transformation_dim_accounts(conn, accounts_data):
+    """
+    Now we need to extract the accounts data
+    in this case accounts_id are unique
+    limit of account never is 0 or null, so we can use get('limit)
+    and prodcuts are in a list [], so we can use str to convert it to a string
+    """
+    cursor = conn.cursor()
+    register_accounts = []
+
+    for account in accounts_data:
+        id_account = account.get('account_id')
+        limit = account.get('limit', 0)
+
+        # Difference between previous function, products can be same but on different accounts
+        if account.get('products'):
+            products = str(account['products'])
+        else:
+            products = None
+
+        register_accounts.append((id_account, limit, products))    
+
+    #     -- tabla para las cuentas
+    # CREATE TABLE DIM_ACCOUNTS (
+    #     ID_ACCOUNT_UNIQUE INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada def previa (pk)
+    #     id_account INTEGER UNIQUE NOT NULL,           -- clave natural: id de la cuenta que tiene el cliente (ej. 721914)
+    #     limit_budget REAL,                                  -- dinero disponible en la cuenta
+    #     products TEXT                                -- La lista de productos en la cuenta products['name1',...]
+    # );
+    # now we fix some words on script (esp to eng)
+    # limit and products didnt added to db -> this fix by delete the previous table; but drop table didnt work 0-0
+    # exist 1745 accounts_id on jsonfile everyone is unique, but output say UNIQUE failed, only with ignore works
+    # but get the 1745 0-0 
+
+
+    try:
+        cursor.executemany("""
+            INSERT OR IGNORE INTO DIM_ACCOUNTS (id_account, limit_budget, products) VALUES (?, ?, ?)""", register_accounts)
+        conn.commit()
+        print(f"Inserted {len(register_accounts)} accounts into DIM_ACCOUNTS.")
+    except sqlite3.DatabaseError as e:
+        print(f"Database error while inserting accounts: {e}")
+
 def run_etl():
     """Main function, where all the ETL process is going to be executed."""
     conn = None
@@ -175,7 +274,9 @@ def run_etl():
 
         transformation_dim_dates(conn, transactions_data)
         trasnformation_dim_symbol(conn, transactions_data)
-    
+        transformation_dim_customers(conn, customers_data)
+        transformation_dim_accounts(conn, accounts_data)
+
     except sqlite3.DatabaseError as e:
         print(f"Database error: {e}")
         if conn:
