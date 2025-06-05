@@ -121,6 +121,31 @@ def transformation_dim_dates(conn, transactions_data):
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting dates: {e}")
 
+def trasnformation_dim_symbol(conn, transactions_data):
+    """
+    Now we need to extract the symbols (amz, nvd, etc)
+    """
+
+    cursor = conn.cursor()
+    uniques_symbols = set()
+
+    for accounts in transactions_data:
+        for transaction in accounts['transactions']:
+            symbol = transaction.get('symbol')
+            if symbol:
+                uniques_symbols.add(symbol)
+    
+    registred_symbols = []
+    for symbol in sorted(uniques_symbols):
+        registred_symbols.append((symbol,))
+
+    try:
+        cursor.executemany("""
+            INSERT INTO DIM_SYMBOL (name_symbol) VALUES (?)""", registred_symbols)
+        conn.commit()
+        print(f"Inserted {len(registred_symbols)} unique symbols into DIM_SYMBOL.")
+    except sqlite3.DatabaseError as e:
+        print(f"Database error while inserting symbols: {e}")
 
 def run_etl():
     """Main function, where all the ETL process is going to be executed."""
@@ -149,6 +174,8 @@ def run_etl():
         # here we are going to use the functions to transform and load the data
 
         transformation_dim_dates(conn, transactions_data)
+        trasnformation_dim_symbol(conn, transactions_data)
+    
     except sqlite3.DatabaseError as e:
         print(f"Database error: {e}")
         if conn:
