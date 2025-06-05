@@ -37,13 +37,13 @@ CREATE TABLE DIM_DATES (
 -- tabla de tipo transaccion (2 casos)
 CREATE TABLE DIM_TYPE_TRANSACTIONS (
     ID_TYPE_TRANSACTION INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada def previa pk (1, o 2 sería para los tipos de transacción)
-    nombre_tipo_transaccion TEXT UNIQUE NOT NULL -- si es 'buy', 'sell',
+    name_type_transacion TEXT UNIQUE NOT NULL -- si es 'buy', 'sell',
 );
 
 -- tabla de símbolos (campo symbol)
 CREATE TABLE DIM_SYMBOL (
     symbol_key INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada def previa pk (1, ..., n )
-    nombre_symbol TEXT UNIQUE NOT NULL           -- los distintos tipos que hay 'amzn', 'nvda', 'msft', etc. 
+    name_symbol TEXT UNIQUE NOT NULL           -- los distintos tipos que hay 'amzn', 'nvda', 'msft', etc. 
 );
 
 -- tabla de las transacciones, sería la central que registra cada transacción
