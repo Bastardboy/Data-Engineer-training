@@ -147,6 +147,55 @@ def trasnformation_dim_symbol(conn, transactions_data):
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting symbols: {e}")
 
+def transformation_dim_customers(conn, customers_data):
+    """
+    Now we need to extract the customers data
+    ALSO need to:
+    1. normalize the 'tier and details' and 'benefits' fields
+    2. formated date of birth (can be numberlong or isoformat again) with the prev function
+    """
+    cursor = conn.cursor()
+    register_customers = []
+
+    for customer in customers_data:
+        username = customer.get('username')
+        name = customer.get('name')
+
+        birth_date = customer.get('birthdate')
+        if birth_date:
+            birth_date_formated = formate_timestamp(birth_date) 
+            if birth_date_formated:
+                birth_date = birth_date_formated.date().isoformat()
+            else:
+                print(f"Error: birthdate {birth_date} could not be transformed.")
+                birth_date = None
+        
+        tier = None
+        benefits = set()
+        tier_and_details = customer.get('tier_and_details', {})
+
+        for data in tier_and_details.values():
+            tier = data.get('tier')
+            if tier == 'Gold':
+                benefits.update(data.get('benefits', []))
+
+        register_customers.append((name, username, birth_date, tier, benefits))
+
+    # ID_CUSTOMER INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada id único del cliente (el pk del id automático)
+    # name_customer TEXT,
+    # username TEXT UNIQUE NOT NULL,                -- clave natural: Usado para identificar al cliente
+    # birthdate DATE,                               -- Fecha de nacimiento
+    # tier TEXT,                                    -- tipo de cuenta tier_and_details { }
+    # benefits TEXT,    
+    # An unexpect error happens: Error binding parameter 4 - probably unsupported type.
+    try:
+        cursor.executemany("""
+            INSERT INTO DIM_CUSTOMERS (name_customer, username, birthdate, tier, benefits) VALUES (?, ?, ?, ?, ?)""", register_customers)
+        conn.commit()
+        print(f"Inserted {len(register_customers)} customers into DIM_CUSTOMERS.")
+    except sqlite3.DatabaseError as e:
+        print(f"Database error while inserting customers: {e}")
+
 def run_etl():
     """Main function, where all the ETL process is going to be executed."""
     conn = None
@@ -175,6 +224,7 @@ def run_etl():
 
         transformation_dim_dates(conn, transactions_data)
         trasnformation_dim_symbol(conn, transactions_data)
+        transformation_dim_customers(conn, customers_data)
     
     except sqlite3.DatabaseError as e:
         print(f"Database error: {e}")
