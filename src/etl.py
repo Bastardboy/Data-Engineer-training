@@ -175,8 +175,8 @@ def transformation_dim_customers(conn, customers_data):
         tier_and_details = customer.get('tier_and_details', {})
 
         for data in tier_and_details.values():
-            tier = data.get('tier')
-            if tier == 'Gold':
+            if data.get('active', False):
+                tier = data.get('tier')
                 benefits.update(data.get('benefits', []))
 
         if benefits:
@@ -196,7 +196,7 @@ def transformation_dim_customers(conn, customers_data):
     # Database error while inserting customers: UNIQUE constraint failed: DIM_CUSTOMERS.username
     try:
         cursor.executemany("""
-            INSERT INTO DIM_CUSTOMERS (name_customer, username, birthdate, tier, benefits) VALUES (?, ?, ?, ?, ?)""", register_customers)
+            INSERT OR IGNORE INTO DIM_CUSTOMERS (name_customer, username, birthdate, tier, benefits) VALUES (?, ?, ?, ?, ?)""", register_customers)
         conn.commit()
         print(f"Inserted {len(register_customers)} customers into DIM_CUSTOMERS.")
     except sqlite3.DatabaseError as e:
