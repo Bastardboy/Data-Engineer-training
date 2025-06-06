@@ -225,6 +225,26 @@ def transformation_dim_customers(conn, customers_data):
     customer_map = {row[0]: row[1] for row in save_rows}
     return customer_map
 
+
+def relation_customers_and_accounts(customers_data):
+    """
+    APART OF ALL, I almost forget to get all the accounts and the customer who own it
+    sooo we use this function to generate that map
+    """
+    account_customer_map = {}
+    for customer in customers_data:
+        username = customer.get('username')
+        name = customer.get('name')
+        customer_natural_key = f"{username}_{name}"
+
+        for account_id in customer.get('accounts', []):
+            account_customer_map[account_id] = customer_natural_key
+    print(f"Created account-customer map with {len(account_customer_map)} entries.")
+    print("Example of account-customer map:", list(account_customer_map.items())[:5])
+    return account_customer_map
+
+
+
 def transformation_dim_accounts(conn, accounts_data):
     """
     Now we need to extract the accounts data
@@ -243,7 +263,7 @@ def transformation_dim_accounts(conn, accounts_data):
         products_list = account.get('products')
 
         if id_account in accounts_id_visited:
-            print(f"Advertencia: account_id '{id_account}' duplicado en los datos de origen. Ignorando esta instancia.")
+            print(f"Advice: '{id_account}' is duplicated, we keep the first encounter.")
             continue
         accounts_id_visited.add(id_account)    
 
@@ -305,7 +325,7 @@ def transformation_dim_type_transactions(conn, transactions_data):
     print(f"Type transaction map: {type_transaction_map}")
     return type_transaction_map
 
-def transformation_fact_transactions(conn, transactions_data):
+def transformation_fact_transactions(conn, transactions_data, map_customers_and_accounts ,dim_accounts_map, dim_customers_map, dim_symbol_map, dim_tot_map):
     """
     now is time to create the center table of the star,
     but for that we need use the information of the previous tables
@@ -315,7 +335,7 @@ def transformation_fact_transactions(conn, transactions_data):
     - i should put the formated data on variables sooo i can reuse, but for now lets going to test the first json
       - ** the data is raw when i use variable, so i need a estrcuture to store the data, which should be a dictionary
     - re use the structure from prev functions is ideal, but this function is going to have much other steps
-    - okay time to shine
+    - well i fix the previous problems, so now its time
     """
     cursor = conn.cursor()
     fact_records_to_insert = []
@@ -323,9 +343,6 @@ def transformation_fact_transactions(conn, transactions_data):
     
     for account_trans in transactions_data:
         account_id_og = account_trans['account_id']
-        print(f"Processing account_id: {account_id_og}")
-    
-    print(f'We entered to transformation_fact_transactions with {len(transactions_data)} transactions')
 
     
 
@@ -337,7 +354,7 @@ def run_etl():
         create_tables(conn) 
 
         print("\n--- 1st Stage: Extracting data from our jsons ---")
-        accounts_data = load_json_file(ACCOUNTS_DATA) # 1746 ; 627788 is repeted
+        accounts_data = load_json_file(ACCOUNTS_DATA) # 1746 ; 627788 is repeted -> 1745
         customers_data = load_json_file(CUSTOMERS_DATA) # 500
         transactions_data = load_json_file(TRANSACTIONS_DATA) # 1746
         
@@ -356,13 +373,17 @@ def run_etl():
         # here we are going to use the functions to transform and load the data
 
         transformation_dim_dates(conn, transactions_data)
-        trasnformation_dim_symbol(conn, transactions_data)
+        map_customers_and_accounts = relation_customers_and_accounts(customers_data)
 
-        transformation_dim_customers(conn, customers_data)
-        transformation_dim_accounts(conn, accounts_data)
+        dim_symbol_map = trasnformation_dim_symbol(conn, transactions_data)
 
-        transformation_dim_type_transactions(conn, transactions_data)
-        #transformation_fact_transactions(conn, transactions_data)
+        dim_customers_map = transformation_dim_customers(conn, customers_data)
+        dim_accounts_map = transformation_dim_accounts(conn, accounts_data)
+
+        dim_tot_map = transformation_dim_type_transactions(conn, transactions_data)
+        
+        print("\n--- 3rd Stage: time to create table transactions ---")
+        transformation_fact_transactions(conn, transactions_data, map_customers_and_accounts, dim_accounts_map, dim_customers_map, dim_symbol_map, dim_tot_map)
 
     except sqlite3.DatabaseError as e:
         print(f"Database error: {e}")
