@@ -246,7 +246,7 @@ def relation_customers_and_accounts(customers_data):
 
 
 
-def transformation_dim_accounts(conn, accounts_data):
+def transformation_dim_accounts(conn, accounts_data, map_customers_and_accounts, dim_customers_map):
     """
     Now we need to extract the accounts data
     in this case accounts_id are unique
@@ -274,7 +274,26 @@ def transformation_dim_accounts(conn, accounts_data):
         if products_list and isinstance(products_list, list):
             products_sorted = json.dumps(products_list)
 
-        register_accounts.append((id_account, limit, products_sorted))    
+        customer_natural_key = map_customers_and_accounts.get(id_account)
+
+        if customer_natural_key:
+            customer_id = dim_customers_map.get(customer_natural_key)
+
+        if not customer_id:
+            print(f"Error: customer for account {id_account} not found. Skipping account.")
+            continue
+
+
+# -- tabla para las cuentas
+# CREATE TABLE DIM_ACCOUNTS (
+#     ID_ACCOUNT_UNIQUE INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada def previa (pk)
+#     id_account INTEGER UNIQUE NOT NULL,           -- clave natural: id de la cuenta que tiene el cliente (ej. 721914)
+#     customer_id INTEGER NOT NULL,                -- FK a DIM_CUSTOMERS
+#     limit_budget REAL,                                  -- dinero disponible en la cuenta
+#     products TEXT                                -- La lista de productos en la cuenta products['name1',...]
+#     FOREIGN KEY (customer_id) REFERENCES DIM_CUSTOMERS(ID_CUSTOMER), -- Relación con clientes
+# );
+        register_accounts.append((id_account, customer_id, limit, products_sorted))    
 
 
     # now we fix some words on script (esp to eng)
@@ -283,7 +302,7 @@ def transformation_dim_accounts(conn, accounts_data):
 
     try:
         cursor.executemany("""
-            INSERT INTO DIM_ACCOUNTS (id_account, limit_budget, products) VALUES (?, ?, ?)""", register_accounts)
+            INSERT INTO DIM_ACCOUNTS (id_account, customer_id, limit_budget, products) VALUES (?,?, ?, ?)""", register_accounts)
         conn.commit()
         print(f"Inserted {len(register_accounts)} accounts into DIM_ACCOUNTS.")
     except sqlite3.DatabaseError as e:
@@ -486,12 +505,15 @@ def run_etl():
         # here we are going to use the functions to transform and load the data
 
         transformation_dim_dates(conn, transactions_data)
-        map_customers_and_accounts = relation_customers_and_accounts(customers_data)
+        
 
         dim_symbol_map = trasnformation_dim_symbol(conn, transactions_data)
 
         dim_customers_map = transformation_dim_customers(conn, customers_data)
-        dim_accounts_map = transformation_dim_accounts(conn, accounts_data)
+        map_customers_and_accounts = relation_customers_and_accounts(customers_data)
+        dim_accounts_map = transformation_dim_accounts(conn, accounts_data, map_customers_and_accounts, dim_customers_map)
+
+
 
         dim_tot_map = transformation_dim_type_transactions(conn, transactions_data)
         

@@ -2,6 +2,7 @@ import os
 import json
 from datetime import datetime
 
+### pregunta 10
 with open('sample_analytics_dataset/sample_analytics.customers.json', encoding='utf-8') as f:
     data = json.load(f)
 
@@ -15,10 +16,22 @@ for customer in data:
 
 # Eliminar duplicados si lo deseas
 gold_benefits = list(set(gold_benefits))
+# obtener una cuenta de los beneficios
 
-print("Beneficios Gold:", gold_benefits)
+print("Beneficios Gold:", len(gold_benefits))
 
+### 
+with open('sample_analytics_dataset/sample_analytics.customers.json', encoding='utf-8') as f:
+    data = json.load(f)
 
+usuarios_con_mas_de_una_cuenta = 0
+
+for usuario in data:
+    cuentas = usuario.get('accounts', [])
+    if isinstance(cuentas, list) and len(cuentas) > 1:
+        usuarios_con_mas_de_una_cuenta += 1
+
+print(f"Usuarios con más de una cuenta: {usuarios_con_mas_de_una_cuenta}")
 
 with open('sample_analytics_dataset/sample_analytics.accounts.json', encoding='utf-8') as f:
     data = json.load(f)
