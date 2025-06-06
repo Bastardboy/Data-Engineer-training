@@ -43,7 +43,7 @@ CREATE TABLE DIM_TYPE_TRANSACTIONS (
 
 -- tabla de símbolos (campo symbol)
 CREATE TABLE DIM_SYMBOL (
-    symbol_key INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada def previa pk (1, ..., n )
+    ID_SYMBOL INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada def previa pk (1, ..., n )
     name_symbol TEXT UNIQUE NOT NULL           -- los distintos tipos que hay 'amzn', 'nvda', 'msft', etc. 
 );
 
@@ -67,5 +67,5 @@ CREATE TABLE FACT_TRANSACTIONS (
     FOREIGN KEY (customer_id) REFERENCES DIM_CUSTOMERS(ID_CUSTOMER),
     FOREIGN KEY (account_id) REFERENCES DIM_ACCOUNTS(ID_ACCOUNT_UNIQUE),
     FOREIGN KEY (type_transaction_id) REFERENCES DIM_TYPE_TRANSACTIONS(ID_TYPE_TRANSACTION),
-    FOREIGN KEY (symbol_id) REFERENCES DIM_SYMBOL(symbol_key)
+    FOREIGN KEY (symbol_id) REFERENCES DIM_SYMBOL(ID_SYMBOL)
 );

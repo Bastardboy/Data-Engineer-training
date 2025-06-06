@@ -144,6 +144,12 @@ def trasnformation_dim_symbol(conn, transactions_data):
         print(f"Inserted {len(registred_symbols)} unique symbols into DIM_SYMBOL.")
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting symbols: {e}")
+    
+    cursor.execute("SELECT name_symbol, ID_SYMBOL FROM DIM_SYMBOL")
+    save_rows = cursor.fetchall()
+    symbol_map = {row[0]: row[1] for row in save_rows}
+    print(f"Symbol map: {symbol_map}")
+    return symbol_map
 
 def transformation_dim_customers(conn, customers_data):
     """
@@ -216,7 +222,6 @@ def transformation_dim_customers(conn, customers_data):
 
     save_rows = cursor.fetchall()
     customer_map = {row[0]: row[1] for row in save_rows}
-    print(f"Customer map created with {len(customer_map)} entries.")
     return customer_map
 
 def transformation_dim_accounts(conn, accounts_data):
@@ -225,12 +230,11 @@ def transformation_dim_accounts(conn, accounts_data):
     in this case accounts_id are unique
     limit of account never is 0 or null, so we can use get('limit)
     and prodcuts are in a list [], so we can use str to convert it to a string
-    well because we have 1 repet account id, time to use a 
+    well because we have 1 repet account id, time to use a set
     """
     cursor = conn.cursor()
     register_accounts = []
     accounts_id_visited = set()
-
 
     for account in accounts_data:
         id_account = account.get('account_id')
@@ -255,7 +259,6 @@ def transformation_dim_accounts(conn, accounts_data):
     # exist 1746 accounts_id on jsonfile where 627788 is repeted
     # so i set for get 1745, because this two have the same products different order
 
-
     try:
         cursor.executemany("""
             INSERT INTO DIM_ACCOUNTS (id_account, limit_budget, products) VALUES (?, ?, ?)""", register_accounts)
@@ -263,6 +266,11 @@ def transformation_dim_accounts(conn, accounts_data):
         print(f"Inserted {len(register_accounts)} accounts into DIM_ACCOUNTS.")
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting accounts: {e}")
+
+    cursor.execute("SELECT id_account, ID_ACCOUNT_UNIQUE FROM DIM_ACCOUNTS")
+    save_rows = cursor.fetchall()
+    account_map = {row[0]: row[1] for row in save_rows}
+    return account_map
 
 
 def transformation_dim_type_transactions(conn, transactions_data):
@@ -284,11 +292,17 @@ def transformation_dim_type_transactions(conn, transactions_data):
 
     try:
         cursor.executemany("""
-            INSERT OR IGNORE INTO DIM_TYPE_TRANSACTIONS (name_type_transacion) VALUES (?)""", register_type_transactions)
+            INSERT INTO DIM_TYPE_TRANSACTIONS (name_type_transacion) VALUES (?)""", register_type_transactions)
         conn.commit()
         print(f"Inserted {len(register_type_transactions)} unique transaction types into DIM_TYPE_TRANSACTIONS.")
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting transaction types: {e}")
+
+    cursor.execute("SELECT name_type_transacion, ID_TYPE_TRANSACTION FROM DIM_TYPE_TRANSACTIONS")
+    save_rows = cursor.fetchall()
+    type_transaction_map = {row[0]: row[1] for row in save_rows}
+    print(f"Type transaction map: {type_transaction_map}")
+    return type_transaction_map
 
 def transformation_fact_transactions(conn, transactions_data):
     """
