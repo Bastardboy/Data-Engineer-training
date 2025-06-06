@@ -213,8 +213,11 @@ def transformation_dim_customers(conn, customers_data):
     sooo the result be like {username: id_customer}
     """
     cursor.execute("SELECT customer_natural_key, ID_CUSTOMER FROM DIM_CUSTOMERS")
-    print({row[0]: row[1] for row in cursor.fetchall()})
-    return {row[0]: row[1] for row in cursor.fetchall()}
+
+    save_rows = cursor.fetchall()
+    customer_map = {row[0]: row[1] for row in save_rows}
+    print(f"Customer map created with {len(customer_map)} entries.")
+    return customer_map
 
 def transformation_dim_accounts(conn, accounts_data):
     """
@@ -222,31 +225,40 @@ def transformation_dim_accounts(conn, accounts_data):
     in this case accounts_id are unique
     limit of account never is 0 or null, so we can use get('limit)
     and prodcuts are in a list [], so we can use str to convert it to a string
+    well because we have 1 repet account id, time to use a 
     """
     cursor = conn.cursor()
     register_accounts = []
+    accounts_id_visited = set()
+
 
     for account in accounts_data:
         id_account = account.get('account_id')
         limit = account.get('limit', 0)
+        products_list = account.get('products')
+
+        if id_account in accounts_id_visited:
+            print(f"Advertencia: account_id '{id_account}' duplicado en los datos de origen. Ignorando esta instancia.")
+            continue
+        accounts_id_visited.add(id_account)    
 
         # Difference between previous function, products can be same but on different accounts
-        if account.get('products'):
-            products = str(account['products'])
-        else:
-            products = None
+        # but now i find a account who have same products but different orden, so a sorted should help for all i guess
+        # sorted dindt help, so i go back to str to add in the same orden on json
+        if products_list and isinstance(products_list, list):
+            products_sorted = str(products_list)
 
-        register_accounts.append((id_account, limit, products))    
+        register_accounts.append((id_account, limit, products_sorted))    
+
 
     # now we fix some words on script (esp to eng)
-    # fixed-> limit and products didnt added to db: this fix by delete the previous table; but drop table didnt work 0-0
-    # exist 1745 accounts_id on jsonfile everyone is unique, but output say UNIQUE failed, only with ignore works
-    # all accounts are in db
+    # exist 1746 accounts_id on jsonfile where 627788 is repeted
+    # so i set for get 1745, because this two have the same products different order
 
 
     try:
         cursor.executemany("""
-            INSERT OR IGNORE INTO DIM_ACCOUNTS (id_account, limit_budget, products) VALUES (?, ?, ?)""", register_accounts)
+            INSERT INTO DIM_ACCOUNTS (id_account, limit_budget, products) VALUES (?, ?, ?)""", register_accounts)
         conn.commit()
         print(f"Inserted {len(register_accounts)} accounts into DIM_ACCOUNTS.")
     except sqlite3.DatabaseError as e:
@@ -310,7 +322,7 @@ def run_etl():
         create_tables(conn) 
 
         print("\n--- 1st Stage: Extracting data from our jsons ---")
-        accounts_data = load_json_file(ACCOUNTS_DATA) # 1746
+        accounts_data = load_json_file(ACCOUNTS_DATA) # 1746 ; 627788 is repeted
         customers_data = load_json_file(CUSTOMERS_DATA) # 500
         transactions_data = load_json_file(TRANSACTIONS_DATA) # 1746
         
