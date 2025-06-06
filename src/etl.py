@@ -434,6 +434,31 @@ def transformation_fact_transactions(conn, transactions_data, map_customers_and_
         print(f"Database error while inserting transactions: {e}")
             
 
+def query_data(conn):
+    cursor = conn.cursor()
+    # First Requriment get averange, min, max and stddev of limit_budget
+    cursor.execute("SELECT limit_budget FROM DIM_ACCOUNTS;")
+    budgets = [row[0] for row in cursor.fetchall() if row[0] is not None]
+
+    if budgets:
+        avg = sum(budgets) / len(budgets)
+        min_val = min(budgets)
+        max_val = max(budgets)
+        # Desviación estándar muestral
+        if len(budgets) > 1:
+            mean = avg
+            stddev = (sum((x - mean) ** 2 for x in budgets) / (len(budgets) - 1)) ** 0.5
+        else:
+            stddev = 0
+        print("Results:")
+        print(f"Averange of limit budget: {avg}")
+        print(f"Min límite: {min_val}")
+        print(f"Max límite: {max_val}")
+        print(f"STDEV: {stddev}")
+    else:
+        print("No hay datos en DIM_ACCOUNTS.")
+
+
 def run_etl():
     """Main function, where all the ETL process is going to be executed."""
     conn = None
@@ -472,6 +497,10 @@ def run_etl():
         
         print("\n--- 3rd Stage: time to create table transactions ---")
         transformation_fact_transactions(conn, transactions_data, map_customers_and_accounts, dim_accounts_map, dim_customers_map, dim_symbol_map, dim_tot_map)
+
+
+        print("\n--- 4th Stage: Querying data ---")
+        query_data(conn)
 
     except sqlite3.DatabaseError as e:
         print(f"Database error: {e}")
