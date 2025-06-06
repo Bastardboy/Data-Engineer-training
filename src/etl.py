@@ -154,10 +154,21 @@ def transformation_dim_customers(conn, customers_data):
     """
     cursor = conn.cursor()
     register_customers = []
+    username_and_name = set()
 
     for customer in customers_data:
         username = customer.get('username')
         name = customer.get('name')
+
+        concatenation_username_name = f"{username}_{name}"
+
+        if not username or not name:
+            print(f"Error: customer {concatenation_username_name} is missing username or name. Skipping.")
+            continue
+        if concatenation_username_name in username_and_name:
+            print(f"Error: customer {concatenation_username_name} already exists. Skipping.")
+            continue
+        username_and_name.add(concatenation_username_name)
 
         birth_date = customer.get('birthdate')
         if birth_date:
@@ -182,24 +193,27 @@ def transformation_dim_customers(conn, customers_data):
         else:
             benifits_str = None
 
-        register_customers.append((name, username, birth_date, tier, benifits_str))
+    
+        register_customers.append((name, username, concatenation_username_name, birth_date, tier, benifits_str))
 
-    # ID_CUSTOMER INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada id único del cliente (el pk del id automático)
-    # name_customer TEXT,
-    # username TEXT UNIQUE NOT NULL,                -- clave natural: Usado para identificar al cliente
-    # birthdate DATE,                               -- Fecha de nacimiento
-    # tier TEXT,                                    -- tipo de cuenta tier_and_details { }
-    #benefits TEXT,
     # solved -> An unexpect error happens: Error binding parameter 4 - probably unsupported type.
-    # Database error while inserting customers: UNIQUE constraint failed: DIM_CUSTOMERS.username
+    # solved ->Database error while inserting customers: UNIQUE constraint failed: DIM_CUSTOMERS.username
     try:
         cursor.executemany("""
-            INSERT OR IGNORE INTO DIM_CUSTOMERS (name_customer, username, birthdate, tier, benefits) VALUES (?, ?, ?, ?, ?)""", register_customers)
+            INSERT INTO DIM_CUSTOMERS (name_customer, username, customer_natural_key, birthdate, tier, benefits) VALUES (?, ?, ?, ?, ?, ?)""", register_customers)
         conn.commit()
         print(f"Inserted {len(register_customers)} customers into DIM_CUSTOMERS.")
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting customers: {e}")
 
+# Database error while inserting customers: UNIQUE constraint failed: DIM_CUSTOMERS.username
+    """
+    Okay, now i understand we need to map the data from the different tables
+    with this we can make functions to get the data from the tables (using the fk i define prev)
+    sooo the result be like {username: id_customer}
+    """
+    cursor.execute("SELECT username, ID_CUSTOMER FROM DIM_CUSTOMERS")
+    return {row[0]: row[1] for row in cursor.fetchall()}
 
 def transformation_dim_accounts(conn, accounts_data):
     """
@@ -223,17 +237,10 @@ def transformation_dim_accounts(conn, accounts_data):
 
         register_accounts.append((id_account, limit, products))    
 
-    #     -- tabla para las cuentas
-    # CREATE TABLE DIM_ACCOUNTS (
-    #     ID_ACCOUNT_UNIQUE INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada def previa (pk)
-    #     id_account INTEGER UNIQUE NOT NULL,           -- clave natural: id de la cuenta que tiene el cliente (ej. 721914)
-    #     limit_budget REAL,                                  -- dinero disponible en la cuenta
-    #     products TEXT                                -- La lista de productos en la cuenta products['name1',...]
-    # );
     # now we fix some words on script (esp to eng)
-    # limit and products didnt added to db -> this fix by delete the previous table; but drop table didnt work 0-0
+    # fixed-> limit and products didnt added to db: this fix by delete the previous table; but drop table didnt work 0-0
     # exist 1745 accounts_id on jsonfile everyone is unique, but output say UNIQUE failed, only with ignore works
-    # but get the 1745 0-0 
+    # all accounts are in db
 
 
     try:
@@ -262,11 +269,6 @@ def transformation_dim_type_transactions(conn, transactions_data):
     for tot in sorted(unique_tot):
         register_type_transactions.append((tot,))
 
-# -- tabla de tipo transaccion (2 casos)
-# CREATE TABLE DIM_TYPE_TRANSACTIONS (
-#     ID_TYPE_TRANSACTION INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada def previa pk (1, o 2 sería para los tipos de transacción)
-#     name_type_transacion TEXT UNIQUE NOT NULL -- si es 'buy', 'sell',
-# );
     try:
         cursor.executemany("""
             INSERT OR IGNORE INTO DIM_TYPE_TRANSACTIONS (name_type_transacion) VALUES (?)""", register_type_transactions)
@@ -283,6 +285,7 @@ def transformation_fact_transactions(conn, transactions_data):
     my ideas
     - use te data from the other json is not viable, to much processing so rip code
     - i should put the formated data on variables sooo i can reuse, but for now lets going to test the first json
+      - ** the data is raw when i use variable, so i need a estrcuture to store the data, which should be a dictionary
     - re use the structure from prev functions is ideal, but this function is going to have much other steps
     - okay time to shine
     """
@@ -309,7 +312,7 @@ def run_etl():
         accounts_data = load_json_file(ACCOUNTS_DATA) # 1746
         customers_data = load_json_file(CUSTOMERS_DATA) # 500
         transactions_data = load_json_file(TRANSACTIONS_DATA) # 1746
-
+        
         # data = pd.DataFrame(accounts_data)
         # data2 = pd.DataFrame(customers_data)
         # data3 = pd.DataFrame(transactions_data)
@@ -331,7 +334,7 @@ def run_etl():
         transformation_dim_accounts(conn, accounts_data)
 
         transformation_dim_type_transactions(conn, transactions_data)
-        transformation_fact_transactions(conn, transactions_data)
+        #transformation_fact_transactions(conn, transactions_data)
 
     except sqlite3.DatabaseError as e:
         print(f"Database error: {e}")

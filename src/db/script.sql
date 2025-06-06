@@ -10,7 +10,8 @@ DROP TABLE IF EXISTS DIM_SYMBOL;
 CREATE TABLE DIM_CUSTOMERS (
     ID_CUSTOMER INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada id único del cliente (el pk del id automático)
     name_customer TEXT,
-    username TEXT UNIQUE NOT NULL,                -- clave natural: Usado para identificar al cliente
+    username TEXT NOT NULL,                -- ya no es la clave natural: Usado para identificar al cliente
+    customer_natural_key TEXT UNIQUE NOT NULL, -- la clave natural ahora es username+name (habían username repetidos)
     birthdate DATE,                               -- Fecha de nacimiento
     tier TEXT,                                    -- tipo de cuenta tier_and_details { }
     benefits TEXT,                                -- Beneficios asociados al tier (guardado como JSON string)
