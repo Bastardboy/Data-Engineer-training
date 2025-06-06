@@ -212,7 +212,8 @@ def transformation_dim_customers(conn, customers_data):
     with this we can make functions to get the data from the tables (using the fk i define prev)
     sooo the result be like {username: id_customer}
     """
-    cursor.execute("SELECT username, ID_CUSTOMER FROM DIM_CUSTOMERS")
+    cursor.execute("SELECT customer_natural_key, ID_CUSTOMER FROM DIM_CUSTOMERS")
+    print({row[0]: row[1] for row in cursor.fetchall()})
     return {row[0]: row[1] for row in cursor.fetchall()}
 
 def transformation_dim_accounts(conn, accounts_data):
