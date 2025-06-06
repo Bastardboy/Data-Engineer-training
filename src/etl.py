@@ -31,7 +31,7 @@ def connect_to_db(db_name):
 def create_tables(conn):
     try:
         cursor = conn.cursor()
-        with open(SQL_PATH, 'r', encoding='utf-8') as file:
+        with open(SCRIPT_PATH, 'r', encoding='utf-8') as file:
             sql_script = file.read()
         cursor.executescript(sql_script)
         conn.commit()
@@ -195,7 +195,8 @@ def transformation_dim_customers(conn, customers_data):
                 benefits.update(data.get('benefits', []))
 
         if benefits:
-            benifits_str = str(list(benefits))
+            benefits = list(benefits) 
+            benifits_str = json.dumps(benefits)
         else:
             benifits_str = None
 
@@ -250,7 +251,7 @@ def transformation_dim_accounts(conn, accounts_data):
         # but now i find a account who have same products but different orden, so a sorted should help for all i guess
         # sorted dindt help, so i go back to str to add in the same orden on json
         if products_list and isinstance(products_list, list):
-            products_sorted = str(products_list)
+            products_sorted = json.dumps(products_list)
 
         register_accounts.append((id_account, limit, products_sorted))    
 
