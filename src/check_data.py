@@ -41,6 +41,16 @@ with open('sample_analytics_dataset/sample_analytics.transactions.json', 'r') as
 print(f"Número de opciones: {len(unique_codes)}")
 print("Opciones:", unique_codes)
 
+with open('sample_analytics_dataset/sample_analytics.transactions.json', 'r') as f:
+    data = json.load(f)
+    total_transaction_count = 0
+
+    for type_transaction in data:
+        transaction_count = type_transaction.get('transaction_count')
+        total_transaction_count += transaction_count
+
+print(f"Suma total de transaction_count: {total_transaction_count}")
+
 with open('sample_analytics_dataset/sample_analytics.customers.json', 'r') as f:
     data = json.load(f)
     username_counts = {}
@@ -60,16 +70,16 @@ with open('sample_analytics_dataset/sample_analytics.customers.json', 'r') as f:
 
 with open('sample_analytics_dataset/sample_analytics.accounts.json', 'r') as f:
     data = json.load(f)
-    account_id = {}
+    account_id_counts = {}
 
     for customer in data:
-        account_id = customer.get('account_id')
-        if account_id:
-            account_id[username] = account_id.get(username, 0) + 1
+        acc_id = customer.get('account_id')
+        if acc_id:
+            account_id_counts[acc_id] = account_id_counts.get(acc_id, 0) + 1
 
-    duplicates = [account for account, count in account_id.items() if count > 1]
+    duplicates = [account for account, count in account_id_counts.items() if count > 1]
     if duplicates:
-        print("Account id repetids:", duplicates)
+        print("Account id repetidos:", duplicates)
     else:
         print("No hay accounts repetidos.")
         #accountid repetidos [627788]

@@ -31,7 +31,7 @@ def connect_to_db(db_name):
 def create_tables(conn):
     try:
         cursor = conn.cursor()
-        with open(SCRIPT_PATH, 'r', encoding='utf-8') as file:
+        with open(SQL_PATH, 'r', encoding='utf-8') as file:
             sql_script = file.read()
         cursor.executescript(sql_script)
         conn.commit()
@@ -223,6 +223,7 @@ def transformation_dim_customers(conn, customers_data):
 
     save_rows = cursor.fetchall()
     customer_map = {row[0]: row[1] for row in save_rows}
+    print(f"Customer map example (5 entries): {list(customer_map.items())[:5]}")
     return customer_map
 
 
@@ -339,12 +340,99 @@ def transformation_fact_transactions(conn, transactions_data, map_customers_and_
     """
     cursor = conn.cursor()
     fact_records_to_insert = []
-
-    
+    #count = 0
+    """
+    here we check account_id, and also we should get the user how is owner of that account
+    """
     for account_trans in transactions_data:
         account_id_og = account_trans['account_id']
-
+        account_id_unique = dim_accounts_map.get(account_id_og)
+        # Here we are getting the unique id of the account who be created on dim_accounts 
+        #852986 (fist transaction) should have a unique id of 205 (account table) check
+        # if count < 5:
+        #     print(f"Processing account_id: {account_id_og} -> Unique ID: {account_id_unique}")
+        #     count += 1
+        customers_accounts = map_customers_and_accounts.get(account_id_og)
+        # same explanation, we want to get the customer_natural_key of the account how is related to the account_id_og
+        # sooo now i saw 83789 its owned by brad cardenas, and get Customers accounts for account_id 87389: charleshudson_Brad Cardenas
+        # if count <5:
+        #     print(f"Customers accounts for account_id {account_id_og}: {customers_accounts}")
+        #     count += 1
+        customers_id_og = dim_customers_map.get(customers_accounts)
+        # and the same, now we get the pk of each customer_natural_key, so we can use it on the fact table
+        # if count < 5:
+        #     print(f"Customers ID for {customers_accounts}: {customers_id_og}")
+        #     count += 1
     
+        """
+        Here we are check date, ToT, symbol and $$$ of transaction, because there are in the same dict
+        """
+        for trans in account_trans['transactions']:
+            date_formated = formate_timestamp(trans['date'])
+
+            if not date_formated:
+                print(f"Error: cant determinate date for {trans['date']}. Skipping transaction.")
+                continue
+
+            date_id = int(date_formated.strftime('%Y%m%d'))
+
+            amount = float(trans['amount'])
+            price_og = trans.get('price')
+            if price_og is not None and str(price_og).strip() != "":
+                price = float(price_og) 
+            else:
+                price = None
+
+            total_og = trans.get('total')
+            if total_og is not None and str(total_og).strip() != "":
+                total = float(total_og)
+            else:
+                total = None
+
+            trans_code = trans['transaction_code']
+            tot_id = dim_tot_map.get(trans_code)
+
+            symbol = trans.get('symbol')
+            if symbol:
+                symbol_id = dim_symbol_map.get(symbol)
+            else:
+                symbol_id = None
+
+            fact_records_to_insert.append((
+                date_id,
+                customers_id_og,
+                account_id_unique,
+                tot_id,
+                symbol_id,
+                amount,
+                price,
+                total,
+                trans_code,
+                date_formated.isoformat()
+            ))
+
+    # ID_TRANSACTION INTEGER PRIMARY KEY AUTOINCREMENT, -- Clave subrogada de la tabla de hechos
+    # date_id INTEGER NOT NULL,                     -- FK a DIM_DATE
+    # customer_id INTEGER NOT NULL,                   -- FK a DIM_CUSTOMERS
+    # account_id INTEGER NOT NULL,                    -- FK a DIM_ACCOUNTS
+    # type_transaction_id INTEGER NOT NULL,          -- FK a DIM_TYPE_TRANSACTIONS
+    # symbol_id INTEGER,                             -- FK a DIM_SYMBOL (opcional, puede ser NULL si no aplica)
+    
+    # amount REAL NOT NULL,                            -- Cantidad de acciones/moneda
+    # price REAL,                                    -- Precio por unidad (puede ser NULL)
+    # total REAL,                                     -- Monto total de la operación (monto * precio, puede ser NULL)
+    # transaction_code TEXT NOT NULL,                 -- Código original de la transacción (redundante pero útil para traza)
+    # transaction_date DATETIME NOT NULL,  
+    
+    try:
+        cursor.executemany("""
+            INSERT INTO FACT_TRANSACTIONS (date_id, customer_id, account_id, type_transaction_id, symbol_id, amount, price, total, transaction_code, transaction_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", fact_records_to_insert)
+        conn.commit()
+        print(f"Inserted {len(fact_records_to_insert)} records into FACT_TRANSACTIONS.")
+    except sqlite3.DatabaseError as e:
+        print(f"Database error while inserting transactions: {e}")
+            
 
 def run_etl():
     """Main function, where all the ETL process is going to be executed."""
@@ -356,7 +444,7 @@ def run_etl():
         print("\n--- 1st Stage: Extracting data from our jsons ---")
         accounts_data = load_json_file(ACCOUNTS_DATA) # 1746 ; 627788 is repeted -> 1745
         customers_data = load_json_file(CUSTOMERS_DATA) # 500
-        transactions_data = load_json_file(TRANSACTIONS_DATA) # 1746
+        transactions_data = load_json_file(TRANSACTIONS_DATA) # 1746 -> if we separate for each transaction we have 88119
         
         # data = pd.DataFrame(accounts_data)
         # data2 = pd.DataFrame(customers_data)
