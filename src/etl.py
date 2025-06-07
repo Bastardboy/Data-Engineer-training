@@ -2,6 +2,7 @@ import sqlite3
 import os
 import json
 from datetime import datetime
+
 # Define the roots to the directories we use
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT_DIR, "sample_analytics_dataset")
@@ -14,6 +15,7 @@ TRANSACTIONS_DATA = os.path.join(DATA_DIR, "sample_analytics.transactions.json")
 
 # Path to script sql to create the tables in the database
 SCRIPT_PATH = os.path.join(DB_DIR, "script.sql")
+QUERY_SQL_PATH = os.path.join(DB_DIR, "query.sql")
 
 SQL_PATH = os.path.join(ROOT_DIR, SCRIPT_PATH)
 DB_NAME = "dw_financial.db"
@@ -56,13 +58,6 @@ def load_json_file(file_path):
         return None
 
 def formate_timestamp(date_data):
-    """
-    Function to transform the $numberLong to a datetime (mongodb format to datetime)
-    2 cases:
-     2.1 -> date is in numberlong format {"$date": {"$numberLong":-199843200000}}
-     2.2 -> date is in isoformat {"$date": "2020-01-01T00:00:00.000Z"}
-     Both are inside of a dict with the key "$date" so we need to check that
-    """
     if not isinstance(date_data, dict) or '$date' not in date_data:
         return None
 
@@ -82,13 +77,9 @@ def formate_timestamp(date_data):
 
     return None
 
-""" Here i going to define the functons to transform data for each db table"""
 
 def transformation_dim_dates(conn, transactions_data):
-    """
-    Now is time to extract the date from sample_analytics.transactions.json to insert on dim_dates
-    Using a set to avoid duplicates dates
-    """
+
     cursor = conn.cursor()
     uniques_dates = set()
 
@@ -113,17 +104,14 @@ def transformation_dim_dates(conn, transactions_data):
 
     try:
         cursor.executemany("""
-            INSERT INTO DIM_DATES (id_date, full_date, year, month, day) VALUES (?, ?, ?, ?, ?)""", registerd_dates)
+            INSERT OR IGNORE INTO DIM_DATES (id_date, full_date, year, month, day) VALUES (?, ?, ?, ?, ?)""", registerd_dates)
         conn.commit()
         print(f"Inserted {len(registerd_dates)} unique dates into DIM_DATES.")
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting dates: {e}")
+        conn.rollback()
 
-def trasnformation_dim_symbol(conn, transactions_data):
-    """
-    Now we need to extract the symbols (amz, nvd, etc)
-    """
-
+def transformation_dim_symbol(conn, transactions_data):
     cursor = conn.cursor()
     uniques_symbols = set()
 
@@ -139,11 +127,12 @@ def trasnformation_dim_symbol(conn, transactions_data):
 
     try:
         cursor.executemany("""
-            INSERT INTO DIM_SYMBOL (name_symbol) VALUES (?)""", registred_symbols)
+            INSERT OR IGNORE INTO DIM_SYMBOL (name_symbol) VALUES (?)""", registred_symbols)
         conn.commit()
         print(f"Inserted {len(registred_symbols)} unique symbols into DIM_SYMBOL.")
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting symbols: {e}")
+        conn.rollback()
     
     cursor.execute("SELECT name_symbol, ID_SYMBOL FROM DIM_SYMBOL")
     save_rows = cursor.fetchall()
@@ -152,12 +141,6 @@ def trasnformation_dim_symbol(conn, transactions_data):
     return symbol_map
 
 def transformation_dim_customers(conn, customers_data):
-    """
-    Now we need to extract the customers data
-    ALSO need to:
-    1. normalize the 'tier and details' and 'benefits' fields
-    2. formated date of birth (can be numberlong or isoformat again) with the prev function
-    """
     cursor = conn.cursor()
     register_customers = []
     username_and_name = set()
@@ -203,24 +186,16 @@ def transformation_dim_customers(conn, customers_data):
     
         register_customers.append((name, username, concatenation_username_name, birth_date, tier, benifits_str))
 
-    # solved -> An unexpect error happens: Error binding parameter 4 - probably unsupported type.
-    # solved ->Database error while inserting customers: UNIQUE constraint failed: DIM_CUSTOMERS.username
     try:
         cursor.executemany("""
-            INSERT INTO DIM_CUSTOMERS (name_customer, username, customer_natural_key, birthdate, tier, benefits) VALUES (?, ?, ?, ?, ?, ?)""", register_customers)
+            INSERT  OR IGNORE INTO DIM_CUSTOMERS (name_customer, username, customer_natural_key, birthdate, tier, benefits) VALUES (?, ?, ?, ?, ?, ?)""", register_customers)
         conn.commit()
         print(f"Inserted {len(register_customers)} customers into DIM_CUSTOMERS.")
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting customers: {e}")
+        conn.rollback()
 
-# Database error while inserting customers: UNIQUE constraint failed: DIM_CUSTOMERS.username
-    """
-    Okay, now i understand we need to map the data from the different tables
-    with this we can make functions to get the data from the tables (using the fk i define prev)
-    sooo the result be like {username: id_customer}
-    """
     cursor.execute("SELECT customer_natural_key, ID_CUSTOMER FROM DIM_CUSTOMERS")
-
     save_rows = cursor.fetchall()
     customer_map = {row[0]: row[1] for row in save_rows}
     print(f"Customer map example (5 entries): {list(customer_map.items())[:5]}")
@@ -228,10 +203,6 @@ def transformation_dim_customers(conn, customers_data):
 
 
 def relation_customers_and_accounts(customers_data):
-    """
-    APART OF ALL, I almost forget to get all the accounts and the customer who own it
-    sooo we use this function to generate that map
-    """
     account_customer_map = {}
     for customer in customers_data:
         username = customer.get('username')
@@ -247,77 +218,47 @@ def relation_customers_and_accounts(customers_data):
 
 
 def transformation_dim_accounts(conn, accounts_data, map_customers_and_accounts, dim_customers_map):
-    """
-    Now we need to extract the accounts data
-    in this case accounts_id are unique
-    limit of account never is 0 or null, so we can use get('limit)
-    and prodcuts are in a list [], so we can use str to convert it to a string
-    well because we have 1 repet account id, time to use a set
-    """
     cursor = conn.cursor()
     register_accounts = []
-    accounts_id_visited = set()
 
     for account in accounts_data:
         id_account = account.get('account_id')
         limit = account.get('limit', 0)
         products_list = account.get('products')
 
-        if id_account in accounts_id_visited:
-            print(f"Advice: '{id_account}' is duplicated, we keep the first encounter.")
-            continue
-        accounts_id_visited.add(id_account)    
-
-        # Difference between previous function, products can be same but on different accounts
-        # but now i find a account who have same products but different orden, so a sorted should help for all i guess
-        # sorted dindt help, so i go back to str to add in the same orden on json
+        products_sorted = None 
         if products_list and isinstance(products_list, list):
             products_sorted = json.dumps(products_list)
-
+        
         customer_natural_key = map_customers_and_accounts.get(id_account)
 
+        customer_id = None 
         if customer_natural_key:
             customer_id = dim_customers_map.get(customer_natural_key)
 
-        if not customer_id:
-            print(f"Error: customer for account {id_account} not found. Skipping account.")
+        if customer_id is None:
+            print(f"Error: customer for account {id_account} (natural key: {customer_natural_key}) not found. Skipping account.")
             continue
 
-
-# -- tabla para las cuentas
-# CREATE TABLE DIM_ACCOUNTS (
-#     ID_ACCOUNT_UNIQUE INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada def previa (pk)
-#     id_account INTEGER UNIQUE NOT NULL,           -- clave natural: id de la cuenta que tiene el cliente (ej. 721914)
-#     customer_id INTEGER NOT NULL,                -- FK a DIM_CUSTOMERS
-#     limit_budget REAL,                                  -- dinero disponible en la cuenta
-#     products TEXT                                -- La lista de productos en la cuenta products['name1',...]
-#     FOREIGN KEY (customer_id) REFERENCES DIM_CUSTOMERS(ID_CUSTOMER), -- Relación con clientes
-# );
-        register_accounts.append((id_account, customer_id, limit, products_sorted))    
-
-
-    # now we fix some words on script (esp to eng)
-    # exist 1746 accounts_id on jsonfile where 627788 is repeted
-    # so i set for get 1745, because this two have the same products different order
+        register_accounts.append((id_account, customer_id, limit, products_sorted))
 
     try:
         cursor.executemany("""
-            INSERT INTO DIM_ACCOUNTS (id_account, customer_id, limit_budget, products) VALUES (?,?, ?, ?)""", register_accounts)
+            INSERT  OR IGNORE INTO DIM_ACCOUNTS (id_account, customer_id, limit_budget, products) VALUES (?,?, ?, ?)""", register_accounts)
         conn.commit()
         print(f"Inserted {len(register_accounts)} accounts into DIM_ACCOUNTS.")
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting accounts: {e}")
+        conn.rollback()
 
     cursor.execute("SELECT id_account, ID_ACCOUNT_UNIQUE FROM DIM_ACCOUNTS")
     save_rows = cursor.fetchall()
     account_map = {row[0]: row[1] for row in save_rows}
+    print(f"Account map example (5 entries): {list(account_map.items())[:5]}")
     return account_map
 
 
 def transformation_dim_type_transactions(conn, transactions_data):
-    """ 
-    Now time to extract the tot (type of transaction) (buy or sell) from the transactions
-    """
     cursor = conn.cursor()
     unique_tot = set()
 
@@ -333,11 +274,12 @@ def transformation_dim_type_transactions(conn, transactions_data):
 
     try:
         cursor.executemany("""
-            INSERT INTO DIM_TYPE_TRANSACTIONS (name_type_transacion) VALUES (?)""", register_type_transactions)
+            INSERT  OR IGNORE INTO DIM_TYPE_TRANSACTIONS (name_type_transacion) VALUES (?)""", register_type_transactions)
         conn.commit()
         print(f"Inserted {len(register_type_transactions)} unique transaction types into DIM_TYPE_TRANSACTIONS.")
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting transaction types: {e}")
+        conn.rollback()
 
     cursor.execute("SELECT name_type_transacion, ID_TYPE_TRANSACTION FROM DIM_TYPE_TRANSACTIONS")
     save_rows = cursor.fetchall()
@@ -346,46 +288,17 @@ def transformation_dim_type_transactions(conn, transactions_data):
     return type_transaction_map
 
 def transformation_fact_transactions(conn, transactions_data, map_customers_and_accounts ,dim_accounts_map, dim_customers_map, dim_symbol_map, dim_tot_map):
-    """
-    now is time to create the center table of the star,
-    but for that we need use the information of the previous tables
-
-    my ideas
-    - use te data from the other json is not viable, to much processing so rip code
-    - i should put the formated data on variables sooo i can reuse, but for now lets going to test the first json
-      - ** the data is raw when i use variable, so i need a estrcuture to store the data, which should be a dictionary
-    - re use the structure from prev functions is ideal, but this function is going to have much other steps
-    - well i fix the previous problems, so now its time
-    """
     cursor = conn.cursor()
     fact_records_to_insert = []
-    #count = 0
-    """
-    here we check account_id, and also we should get the user how is owner of that account
-    """
+
     for account_trans in transactions_data:
         account_id_og = account_trans['account_id']
         account_id_unique = dim_accounts_map.get(account_id_og)
-        # Here we are getting the unique id of the account who be created on dim_accounts 
-        #852986 (fist transaction) should have a unique id of 205 (account table) check
-        # if count < 5:
-        #     print(f"Processing account_id: {account_id_og} -> Unique ID: {account_id_unique}")
-        #     count += 1
+
         customers_accounts = map_customers_and_accounts.get(account_id_og)
-        # same explanation, we want to get the customer_natural_key of the account how is related to the account_id_og
-        # sooo now i saw 83789 its owned by brad cardenas, and get Customers accounts for account_id 87389: charleshudson_Brad Cardenas
-        # if count <5:
-        #     print(f"Customers accounts for account_id {account_id_og}: {customers_accounts}")
-        #     count += 1
+
         customers_id_og = dim_customers_map.get(customers_accounts)
-        # and the same, now we get the pk of each customer_natural_key, so we can use it on the fact table
-        # if count < 5:
-        #     print(f"Customers ID for {customers_accounts}: {customers_id_og}")
-        #     count += 1
-    
-        """
-        Here we are check date, ToT, symbol and $$$ of transaction, because there are in the same dict
-        """
+
         for trans in account_trans['transactions']:
             date_formated = formate_timestamp(trans['date'])
 
@@ -429,33 +342,20 @@ def transformation_fact_transactions(conn, transactions_data, map_customers_and_
                 trans_code,
                 date_formated.isoformat()
             ))
-
-    # ID_TRANSACTION INTEGER PRIMARY KEY AUTOINCREMENT, -- Clave subrogada de la tabla de hechos
-    # date_id INTEGER NOT NULL,                     -- FK a DIM_DATE
-    # customer_id INTEGER NOT NULL,                   -- FK a DIM_CUSTOMERS
-    # account_id INTEGER NOT NULL,                    -- FK a DIM_ACCOUNTS
-    # type_transaction_id INTEGER NOT NULL,          -- FK a DIM_TYPE_TRANSACTIONS
-    # symbol_id INTEGER,                             -- FK a DIM_SYMBOL (opcional, puede ser NULL si no aplica)
-    
-    # amount REAL NOT NULL,                            -- Cantidad de acciones/moneda
-    # price REAL,                                    -- Precio por unidad (puede ser NULL)
-    # total REAL,                                     -- Monto total de la operación (monto * precio, puede ser NULL)
-    # transaction_code TEXT NOT NULL,                 -- Código original de la transacción (redundante pero útil para traza)
-    # transaction_date DATETIME NOT NULL,  
     
     try:
         cursor.executemany("""
-            INSERT INTO FACT_TRANSACTIONS (date_id, customer_id, account_id, type_transaction_id, symbol_id, amount, price, total, transaction_code, transaction_date)
+            INSERT  OR IGNORE  INTO FACT_TRANSACTIONS (date_id, customer_id, account_id, type_transaction_id, symbol_id, amount, price, total, transaction_code, transaction_date)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", fact_records_to_insert)
         conn.commit()
         print(f"Inserted {len(fact_records_to_insert)} records into FACT_TRANSACTIONS.")
     except sqlite3.DatabaseError as e:
         print(f"Database error while inserting transactions: {e}")
+        conn.rollback()
             
 
 def query_data(conn):
     cursor = conn.cursor()
-    # First Requriment get averange, min, max and stddev of limit_budget
     cursor.execute("SELECT limit_budget FROM DIM_ACCOUNTS;")
     budgets = [row[0] for row in cursor.fetchall() if row[0] is not None]
 
@@ -466,20 +366,55 @@ def query_data(conn):
         # Desviación estándar muestral
         if len(budgets) > 1:
             mean = avg
-            stddev = (sum((x - mean) ** 2 for x in budgets) / (len(budgets) - 1)) ** 0.5
+            stddev = (sum((x - mean) ** 2 for x in budgets) / (len(budgets) - 1)) ** 0.5 # <--- ¡Aquí está!
         else:
             stddev = 0
         print("Results:")
-        print(f"Averange of limit budget: {avg}")
-        print(f"Min límite: {min_val}")
-        print(f"Max límite: {max_val}")
-        print(f"STDEV: {stddev}")
+        print(f"Averange of limit budget: {avg:.2f}")
+        print(f"Min límite: {min_val:.2f}")
+        print(f"Max límite: {max_val:.2f}")
+        print(f"STDEV: {stddev:.2f}") # <--- Y aquí se imprime
     else:
         print("No hay datos en DIM_ACCOUNTS.")
 
+    try:
+        # Abre y lee el contenido del archivo query.sql
+        with open(QUERY_SQL_PATH, 'r', encoding='utf-8') as file:
+            sql_script_content = file.read()
+
+        individual_queries = [q.strip() for q in sql_script_content.split(';') if q.strip()]
+
+        for i, query_text in enumerate(individual_queries):
+            print(f"\n--- Results for querys {i+1} ---")
+            
+            try:
+                cursor.execute(query_text)
+                results = cursor.fetchall()
+
+                if i == 0:
+                    print(f'The query " ¿Cuál es el Promedio, mínimo, máximo y desviación estándar del limite de las cuentas de los clientes?" was executed by python code, see previous print.')
+                    continue
+                elif results:
+                    column_names = [description[0] for description in cursor.description]
+                    print(f"Columns: {', '.join(column_names)}")
+                    for row in results:
+                        formatted_row = " | ".join(str(item) for item in row)
+                        print(formatted_row)
+                else:
+                    print("No results found for this query.")
+            except sqlite3.OperationalError as e:
+                print(f"Error executing the SQL query: {e}")
+            except sqlite3.DatabaseError as e:
+                print(f"Database error while executing the query: {e}")
+            except Exception as e:
+                print(f"An unexpected error occurred during query execution: {e}")
+
+    except FileNotFoundError:
+        print(f"Error: SQL query file not found at {QUERY_SQL_PATH}")
+    except Exception as e:
+        print(f"An unexpected error occurred while reading or processing query.sql: {e}")
 
 def run_etl():
-    """Main function, where all the ETL process is going to be executed."""
     conn = None
     try:
         conn = connect_to_db(DB_NAME)
@@ -489,25 +424,17 @@ def run_etl():
         accounts_data = load_json_file(ACCOUNTS_DATA) # 1746 ; 627788 is repeted -> 1745
         customers_data = load_json_file(CUSTOMERS_DATA) # 500
         transactions_data = load_json_file(TRANSACTIONS_DATA) # 1746 -> if we separate for each transaction we have 88119
-        
-        # data = pd.DataFrame(accounts_data)
-        # data2 = pd.DataFrame(customers_data)
-        # data3 = pd.DataFrame(transactions_data)
-        # print(f"Accounts data loaded: {len(data)} records")
-        # print(f"Customers data loaded: {len(data2)} records")
-        # print(f"Transactions data loaded: {len(data3)} records")
 
         if not accounts_data or not customers_data or not transactions_data:
             print("Error: One or more files couldnt be loaded. ETL Process aborted.")
             return
         
         print("\n--- 2nd Stage: Trasformations and loaded of data ---") 
-        # here we are going to use the functions to transform and load the data
 
         transformation_dim_dates(conn, transactions_data)
         
 
-        dim_symbol_map = trasnformation_dim_symbol(conn, transactions_data)
+        dim_symbol_map = transformation_dim_symbol(conn, transactions_data)
 
         dim_customers_map = transformation_dim_customers(conn, customers_data)
         map_customers_and_accounts = relation_customers_and_accounts(customers_data)
