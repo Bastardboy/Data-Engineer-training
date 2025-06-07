@@ -109,7 +109,7 @@ FROM
     FACT_TRANSACTIONS
 JOIN
     DIM_TYPE_TRANSACTIONS ON FACT_TRANSACTIONS.type_transaction_id = DIM_TYPE_TRANSACTIONS.ID_TYPE_TRANSACTION;
-    
+
 -- 9. ¿Cuáles son los diferentes beneficios que tienen los clientes del tier 'Gold'?
 SELECT DISTINCT
     json_each.value AS beneficios_gold
@@ -118,6 +118,8 @@ FROM
     json_each(DIM_CUSTOMERS.benefits)
 WHERE
     tier = 'Gold';
+ORDER BY
+    beneficios_gold ASC;
     
 -- 10. Obtener la cantidad de clientes por rangos etarios ([10–19], [20–29], etc.), que hayan realizado al menos una compra de
 -- acciones de “amzn”. La edad debe calcularse como la diferencia entre la fecha de corte 2025-05-16 y el campo “birthdate”.
