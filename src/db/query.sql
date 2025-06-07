@@ -102,21 +102,14 @@ ORDER BY
 LIMIT 1; 
 
 -- 8. ¿Cuál es el promedio de transacciones de compra (buy) y venta (sell) por accion (symbol)?
-    SELECT
-        DIM_SYMBOL.name_symbol,
-        ROUND(AVG(CASE WHEN DIM_TYPE_TRANSACTIONS.name_type_transacion = 'buy' THEN FACT_TRANSACTIONS.amount ELSE NULL END), 2) AS promedio_compra,
-        ROUND(AVG(CASE WHEN DIM_TYPE_TRANSACTIONS.name_type_transacion = 'sell' THEN FACT_TRANSACTIONS.amount ELSE NULL END), 2) AS promedio_venta
-    FROM
-        FACT_TRANSACTIONS
-    JOIN
-        DIM_SYMBOL ON FACT_TRANSACTIONS.symbol_id = DIM_SYMBOL.ID_SYMBOL
-    JOIN
-        DIM_TYPE_TRANSACTIONS ON FACT_TRANSACTIONS.type_transaction_id = DIM_TYPE_TRANSACTIONS.ID_TYPE_TRANSACTION
-    GROUP BY
-        DIM_SYMBOL.ID_SYMBOL
-    ORDER BY
-        DIM_SYMBOL.name_symbol;
-
+SELECT
+    ROUND(AVG(CASE WHEN DIM_TYPE_TRANSACTIONS.name_type_transacion = 'buy' THEN FACT_TRANSACTIONS.amount END), 2) AS promedio_compra,
+    ROUND(AVG(CASE WHEN DIM_TYPE_TRANSACTIONS.name_type_transacion = 'sell' THEN FACT_TRANSACTIONS.amount END), 2) AS promedio_venta
+FROM
+    FACT_TRANSACTIONS
+JOIN
+    DIM_TYPE_TRANSACTIONS ON FACT_TRANSACTIONS.type_transaction_id = DIM_TYPE_TRANSACTIONS.ID_TYPE_TRANSACTION;
+    
 -- 9. ¿Cuáles son los diferentes beneficios que tienen los clientes del tier 'Gold'?
 SELECT DISTINCT
     json_each.value AS beneficios_gold
