@@ -49,3 +49,35 @@ ORDER BY
     diferencia_maxima DESC
 LIMIT 1;
 
+-- 5 . ¿Cuántas cuentas tienen exactamente 3 productos y al menos uno de ellos es 'Commodity'?
+SELECT
+    COUNT(DISTINCT DIM_ACCOUNTS.ID_ACCOUNT_UNIQUE) AS cuentas_con_tres_productos_y_commodity
+FROM
+    DIM_ACCOUNTS
+WHERE
+    JSON_ARRAY_LENGTH(DIM_ACCOUNTS.products) = 3 -- Verificar que tenga exactamente 3 productos
+    AND (
+        JSON_EXTRACT(DIM_ACCOUNTS.products, '$[0]') = 'Commodity'
+        OR JSON_EXTRACT(DIM_ACCOUNTS.products, '$[1]') = 'Commodity'
+        OR JSON_EXTRACT(DIM_ACCOUNTS.products, '$[2]') = 'Commodity'
+    );
+
+-- 6. ¿Cuál es el nombre del cliente que, en total entre todas sus cuentas, ha realizado la mayor cantidad de transacciones del tipo sell?
+
+-- 7. ¿Cuál es el usuario del cliente cuya cuenta tiene entr 10 y 20 transacciones de tipo 'buy', y que presenta el promedio de inverisón más alto por operación de este tipo?
+
+
+-- 8. ¿Cuál es el promedio de transacciones de compra (buy) y venta (sell) por accion (symbol)?
+
+
+-- 9. ¿Cuáles son los diferentes beneficios que tienen los clientes del tier 'Gold'?
+SELECT DISTINCT
+    json_each.value AS beneficios_gold
+FROM
+    DIM_CUSTOMERS,
+    json_each(DIM_CUSTOMERS.benefits)
+WHERE
+    tier = 'Gold';
+    
+-- 10. Obtener la cantidad de clientes por rangos etarios ([10–19], [20–29], etc.), que hayan realizado al menos una compra de
+-- acciones de “amzn”. La edad debe calcularse como la diferencia entre la fecha de corte 2025-05-16 y el campo “birthdate”.
