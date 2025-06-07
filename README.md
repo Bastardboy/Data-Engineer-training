@@ -120,15 +120,15 @@ Si bien el promedio de ventas es un poco mayor al de compra, podríamos establec
 ### 9. ¿Cuáles son los diferentes beneficios que tienen los clientes del tier “Gold”?
 
 - 24 hour dedicated line
-- concert tickets
-- travel insurance
-- car rental insurance
-- dedicated account representative
-- concierge services
 - airline lounge access
-- shopping discounts
+- car rental insurance
+- concert tickets
+- concierge services
+- dedicated account representative
 - financial planning assistance
+- shopping discounts
 - sports tickets
+- travel insurance
 ---
 
 Podemos ver que al tener activado el estado de "Gold" en la cuenta el cliente tendrá multiples tipos beneficios, los cuales pueden ser usados para campañas de marketing, retención o promover al resto que hagan uso de esta suscripción.
