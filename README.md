@@ -110,29 +110,12 @@ Ahora se sugiere que el cliente tiene un perfil de alto inversor, teniendo en cu
 
 ### 8. ¿Cuál es el promedio de transacciones de compra y de venta por acción (campo “symbol”)?
 
-| Símbolo | Promedio Compra | Promedio Venta |
-|:-------:|:---------------:|:--------------:|
-| aapl    | $4,960.32       | $5,007.65      |
-| adbe    | $5,034.05       | $4,957.62      |
-| amd     | $4,941.14       | $5,036.85      |
-| amzn    | $5,009.69       | $5,018.30      |
-| bb      | $5,063.12       | $4,996.96      |
-| crm     | $4,959.67       | $5,045.13      |
-| csco    | $4,999.96       | $5,123.53      |
-| ebay    | $4,836.10       | $4,962.13      |
-| fb      | $4,957.80       | $4,975.34      |
-| goog    | $4,942.32       | $4,886.61      |
-| ibm     | $5,086.72       | $5,032.35      |
-| intc    | $5,036.03       | $4,887.81      |
-| msft    | $5,010.68       | $4,972.42      |
-| nflx    | $4,995.04       | $5,068.55      |
-| nvda    | $4,986.40       | $4,935.66      |
-| sap     | $4,910.85       | $5,056.24      |
-| team    | $5,016.18       | $5,049.71      |
-| znga    | $5,052.40       | $4,952.77      |
+ | Promedio Compra | Promedio Venta |
+|:---------------:|:--------------:|
+| $4,986.17       | $4,996.42      |
 ---
 
-Se puede observar como el prestigio o rentabilidad de la marca, se puede llegar a basar tanto en percepción del cliente, como en los precios impuestos por los usuarios previos. Con esto sería posible generar estrategias de especulacion para la compra y venta de acciones tanto por preferencias o el perfil de los clientes.
+Si bien el promedio de ventas es un poco mayor al de compra, podríamos establecer que es rentable el comportamiento, pero se mantiene conservador
 
 ### 9. ¿Cuáles son los diferentes beneficios que tienen los clientes del tier “Gold”?
 
