@@ -1,13 +1,12 @@
--- Eliminar tablas existentes para una ejecución limpia (útil durante el desarrollo)
 DROP TABLE IF EXISTS FACT_TRANSACTIONS;
-DROP TABLE IF EXISTS DIM_CUSTOMERS;
-DROP TABLE IF EXISTS DIM_ACCOUNTS;
-DROP TABLE IF EXISTS DIM_DATES;
+DROP TABLE IF EXISTS DIM_ACCOUNTS;      
+DROP TABLE IF EXISTS DIM_CUSTOMERS;    
 DROP TABLE IF EXISTS DIM_TYPE_TRANSACTIONS;
-DROP TABLE IF EXISTS DIM_SYMBOL;
+DROP TABLE IF EXISTS DIM_SYMBOL;        
+DROP TABLE IF EXISTS DIM_DATES;         
 
 -- tabla para clientes
-CREATE TABLE DIM_CUSTOMERS (
+CREATE TABLE IF NOT EXISTS DIM_CUSTOMERS (
     ID_CUSTOMER INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada id único del cliente (el pk del id automático)
     name_customer TEXT,
     username TEXT NOT NULL,                -- ya no es la clave natural: Usado para identificar al cliente
@@ -19,15 +18,17 @@ CREATE TABLE DIM_CUSTOMERS (
 );
 
 -- tabla para las cuentas
-CREATE TABLE DIM_ACCOUNTS (
+CREATE TABLE IF NOT EXISTS DIM_ACCOUNTS (
     ID_ACCOUNT_UNIQUE INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada def previa (pk)
-    id_account INTEGER UNIQUE NOT NULL,           -- clave natural: id de la cuenta que tiene el cliente (ej. 721914)
+    id_account INTEGER NOT NULL,           -- clave natural: id de la cuenta que tiene el cliente (ej. 721914)
+    customer_id INTEGER NOT NULL,                -- FK a DIM_CUSTOMERS
     limit_budget REAL,                                  -- dinero disponible en la cuenta
-    products TEXT                                -- La lista de productos en la cuenta products['name1',...]
+    products TEXT,                            -- La lista de productos en la cuenta products['name1',...]
+    FOREIGN KEY (customer_id) REFERENCES DIM_CUSTOMERS(ID_CUSTOMER) -- Relación con clientes
 );
 
 -- tabla de las fechas (lo veo para resolver las preguntas de mes, birthdate etc)
-CREATE TABLE DIM_DATES (
+CREATE TABLE IF NOT EXISTS DIM_DATES (
     ID_DATE INTEGER PRIMARY KEY,                -- formato YYYYMMDD para clave (transformar la fecha a entero, ej 19960913)
     full_date DATE UNIQUE NOT NULL,               -- fecha completa en formato DATE (ej. 1996-09-13) 
     day INTEGER NOT NULL,
@@ -36,19 +37,19 @@ CREATE TABLE DIM_DATES (
 );
 
 -- tabla de tipo transaccion (2 casos)
-CREATE TABLE DIM_TYPE_TRANSACTIONS (
+CREATE TABLE IF NOT EXISTS DIM_TYPE_TRANSACTIONS (
     ID_TYPE_TRANSACTION INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada def previa pk (1, o 2 sería para los tipos de transacción)
     name_type_transacion TEXT UNIQUE NOT NULL -- si es 'buy', 'sell',
 );
 
 -- tabla de símbolos (campo symbol)
-CREATE TABLE DIM_SYMBOL (
+CREATE TABLE IF NOT EXISTS DIM_SYMBOL (
     ID_SYMBOL INTEGER PRIMARY KEY AUTOINCREMENT, -- clave subrogada def previa pk (1, ..., n )
     name_symbol TEXT UNIQUE NOT NULL           -- los distintos tipos que hay 'amzn', 'nvda', 'msft', etc. 
 );
 
 -- tabla de las transacciones, sería la central que registra cada transacción
-CREATE TABLE FACT_TRANSACTIONS (
+CREATE TABLE IF NOT EXISTS FACT_TRANSACTIONS (
     ID_TRANSACTION INTEGER PRIMARY KEY AUTOINCREMENT, -- Clave subrogada de la tabla de hechos
     date_id INTEGER NOT NULL,                     -- FK a DIM_DATE
     customer_id INTEGER NOT NULL,                   -- FK a DIM_CUSTOMERS
