@@ -81,3 +81,31 @@ WHERE
     
 -- 10. Obtener la cantidad de clientes por rangos etarios ([10–19], [20–29], etc.), que hayan realizado al menos una compra de
 -- acciones de “amzn”. La edad debe calcularse como la diferencia entre la fecha de corte 2025-05-16 y el campo “birthdate”.
+SELECT
+    CASE
+        WHEN CAST(strftime('%Y.%m%d', '2025-05-16') - strftime('%Y.%m%d', DIM_CUSTOMERS.birthdate) AS INTEGER) BETWEEN 10 AND 19 THEN '[10-19]'
+        WHEN CAST(strftime('%Y.%m%d', '2025-05-16') - strftime('%Y.%m%d', DIM_CUSTOMERS.birthdate) AS INTEGER) BETWEEN 20 AND 29 THEN '[20-29]'
+        WHEN CAST(strftime('%Y.%m%d', '2025-05-16') - strftime('%Y.%m%d', DIM_CUSTOMERS.birthdate) AS INTEGER) BETWEEN 30 AND 39 THEN '[30-39]'
+        WHEN CAST(strftime('%Y.%m%d', '2025-05-16') - strftime('%Y.%m%d', DIM_CUSTOMERS.birthdate) AS INTEGER) BETWEEN 40 AND 49 THEN '[40-49]'
+        WHEN CAST(strftime('%Y.%m%d', '2025-05-16') - strftime('%Y.%m%d', DIM_CUSTOMERS.birthdate) AS INTEGER) BETWEEN 50 AND 59 THEN '[50-59]'
+        WHEN CAST(strftime('%Y.%m%d', '2025-05-16') - strftime('%Y.%m%d', DIM_CUSTOMERS.birthdate) AS INTEGER) BETWEEN 60 AND 69 THEN '[60-69]'
+        WHEN CAST(strftime('%Y.%m%d', '2025-05-16') - strftime('%Y.%m%d', DIM_CUSTOMERS.birthdate) AS INTEGER) BETWEEN 70 AND 79 THEN '[70-79]'
+        WHEN CAST(strftime('%Y.%m%d', '2025-05-16') - strftime('%Y.%m%d', DIM_CUSTOMERS.birthdate) AS INTEGER) >= 80 THEN '[80+]'
+        ELSE 'UNKNOWN'
+    END AS rango_etario,
+    COUNT(DISTINCT DIM_CUSTOMERS.ID_CUSTOMER) AS cantidad_clientes
+FROM
+    DIM_CUSTOMERS
+JOIN
+    FACT_TRANSACTIONS ON DIM_CUSTOMERS.ID_CUSTOMER = FACT_TRANSACTIONS.customer_id
+JOIN
+    DIM_SYMBOL ON FACT_TRANSACTIONS.symbol_id = DIM_SYMBOL.ID_SYMBOL
+JOIN 
+    DIM_TYPE_TRANSACTIONS ON FACT_TRANSACTIONS.type_transaction_id = DIM_TYPE_TRANSACTIONS.ID_TYPE_TRANSACTION
+WHERE
+    DIM_SYMBOL.name_symbol = 'amzn'
+    AND DIM_TYPE_TRANSACTIONS.name_type_transacion = 'buy'
+GROUP BY
+    rango_etario
+ORDER BY
+    rango_etario;
