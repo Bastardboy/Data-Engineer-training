@@ -39,14 +39,15 @@ WHERE
 
 -- 4. ¿Cuál es el id de cuenta con la mayor diferencia entre sus transacciones más altas y más bajas?
 SELECT
-    FACT_TRANSACTIONS.account_id,
-    MAX(FACT_TRANSACTIONS.amount) - MIN(FACT_TRANSACTIONS.amount) AS diferencia_maxima
+    DIM_ACCOUNTS.id_account
 FROM
     FACT_TRANSACTIONS
+JOIN
+    DIM_ACCOUNTS ON FACT_TRANSACTIONS.account_id = DIM_ACCOUNTS.ID_ACCOUNT_UNIQUE
 GROUP BY
-    FACT_TRANSACTIONS.account_id
+    DIM_ACCOUNTS.id_account
 ORDER BY
-    diferencia_maxima DESC
+    MAX(FACT_TRANSACTIONS.amount) - MIN(FACT_TRANSACTIONS.amount) DESC
 LIMIT 1;
 
 -- 5 . ¿Cuántas cuentas tienen exactamente 3 productos y al menos uno de ellos es 'Commodity'?
