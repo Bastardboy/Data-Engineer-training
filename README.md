@@ -199,25 +199,13 @@ Bsale-Technical-Test/
 git clone https://github.com/Bastardboy/Bsale-Technical-Test.git
 cd Bsale-Technical-Test
 ```
-2. **Crear un entorno virtual en la raiz**
-```bash
-python -m venv .
-```
-3. **Activar el entorno virtual**
-   - En Windows:
-   ```bash
-   .\Scripts\activate
-   ```
-   - En Linux/Mac:
-   ```bash
-   source bin/activate
-   ```
-4. **Moverse hacia la carpeta de trabajo**
+
+2. **Moverse hacia la carpeta de trabajo**
 ```bash
 cd src
 ```
 
-5. **Ejecutar el script ETL**
+3. **Ejecutar el script ETL**
 ```bash
 python etl.py
 ```
