@@ -25,3 +25,27 @@ FROM(
     HAVING
         COUNT(ID_ACCOUNT_UNIQUE) > 1
 ) AS subquery;
+
+-- 3. ¿Cuál es el monto promedio y el número de transacciones del mes de junio?
+SELECT
+    ROUND(AVG(amount), 2) AS promedio_monto_junio,
+    COUNT(ID_TRANSACTION) AS numero_transacciones_junio
+FROM
+    FACT_TRANSACTIONS
+JOIN
+    DIM_DATES ON date_id = DIM_DATES.ID_DATE
+WHERE
+    DIM_DATES.month = 6;
+
+-- 4. ¿Cuál es el id de cuenta con la mayor diferencia entre sus transacciones más altas y más bajas?
+SELECT
+    FACT_TRANSACTIONS.account_id,
+    MAX(FACT_TRANSACTIONS.amount) - MIN(FACT_TRANSACTIONS.amount) AS diferencia_maxima
+FROM
+    FACT_TRANSACTIONS
+GROUP BY
+    FACT_TRANSACTIONS.account_id
+ORDER BY
+    diferencia_maxima DESC
+LIMIT 1;
+
