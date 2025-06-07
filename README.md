@@ -186,6 +186,7 @@ Bsale-Technical-Test/
 │   │   ├── transform_transactios.py
 │   │── etl.py
 │   │── check_data.py
+├── Explicación funciones.pdf
 ├── requirements.txt
 ├── .gitignore
 └── README.md
