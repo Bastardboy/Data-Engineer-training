@@ -28,7 +28,7 @@ DB_NAME = "dw_financial.db"
 def run_etl():
     conn = None
     try:
-        conn = connect_to_db(DB_NAME)
+        conn = connect_to_db(DB_PATH)
         create_tables(conn) 
 
         print("\n--- 1st Stage: Extracting data from our jsons ---")
