@@ -117,7 +117,7 @@ FROM
     DIM_CUSTOMERS,
     json_each(DIM_CUSTOMERS.benefits)
 WHERE
-    tier = 'Gold';
+    tier = 'Gold'
 ORDER BY
     beneficios_gold ASC;
     
