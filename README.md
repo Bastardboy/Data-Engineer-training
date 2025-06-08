@@ -54,20 +54,10 @@ Bsale-Technical-Test/
 │   │   ├── sample_analytics.accounts.json
 │   │   ├── sample_analytics.customers.json
 │   │   ├── sample_analytics.transactions.json
-│   │── utils/
-│   │   ├── database.py
-│   │   ├── execute_query.py
-│   │   ├── loader.py
-│   │   ├── transform_accounts.py
-│   │   ├── transform_customers.py
-│   │   ├── transform_dates.py 
-│   │   ├── transform_symbols.py
-│   │   ├── transform_tot.py
-│   │   ├── transform_transactios.py
+│   │── etl.log
 │   │── etl.py
 │   │── check_data.py
 ├── Explicación funciones.pdf
-├── requirements.txt
 ├── .gitignore
 └── README.md
 ```
@@ -193,46 +183,5 @@ Podemos ver que al tener activado el estado de "Gold" en la cuenta el cliente te
 ----
 
 Las acciones de "amzn" son el interes para los clientes entre 30 y 59 años, que a su vez se les puede catalogar como el grupo con mayor estabilidad económica del grupo estudiado. Esto podría verse reflejado viendo el rango anterior, donde los adultos jóvenes, al estar en sus etapas formativas, poseen menos capital, aumentando las barreras de entrada
-
-<<<<<<< HEAD
-## 📂 Estructura del Proyecto
-```bash
-Bsale-Technical-Test/
-├── src/
-│   │── db/
-│   │   ├── script.sql
-│   │   ├── query.sql
-│   │   ├── dw_financial.db 
-│   ├── sample_analytics_dataset/
-│   │   ├── sample_analytics.accounts.json
-│   │   ├── sample_analytics.customers.json
-│   │   ├── sample_analytics.transactions.json
-│   │── etl.log
-│   │── etl.py
-│   │── check_data.py
-├── Explicación funciones.pdf
-├── .gitignore
-└── README.md
-```
-
-## 🚀 Instrucciones de Ejecución Local
-
-1. **Clonar repositorio**
-```bash
-git clone https://github.com/Bastardboy/Bsale-Technical-Test.git
-cd Bsale-Technical-Test
-```
-
-2. **Moverse hacia la carpeta de trabajo**
-```bash
-cd src
-```
-
-3. **Ejecutar el script ETL**
-```bash
-python etl.py
-```
-=======
->>>>>>> 0b2d2fe139986085f80766f03de5874189539e32
 
 ## Desarrollado por David Pazán 
