@@ -1,0 +1,42 @@
+2025-06-08 02:41:25 | INFO     | etl:run_etl:389 - Starting ETL process
+2025-06-08 02:41:25 | INFO     | etl:connect_to_db:38 - Successfully connected to database: /home/david/Bsale-Technical-Test/src/db/dw_financial.db
+2025-06-08 02:41:25 | INFO     | etl:create_tables:51 - Tables created successfully
+2025-06-08 02:41:25 | INFO     | etl:run_etl:397 - --- Extraction Phase ---
+2025-06-08 02:41:25 | INFO     | etl:load_json_file:58 - Loaded JSON file: sample_analytics.accounts.json
+2025-06-08 02:41:25 | INFO     | etl:load_json_file:58 - Loaded JSON file: sample_analytics.customers.json
+2025-06-08 02:41:25 | INFO     | etl:load_json_file:58 - Loaded JSON file: sample_analytics.transactions.json
+2025-06-08 02:41:26 | INFO     | etl:run_etl:406 - --- Transformation & Loading Phase ---
+2025-06-08 02:41:28 | ERROR    | etl:insert_function:71 - Database error inserting unique dates into DIM_DATES: attempt to write a readonly database
+2025-06-08 02:41:28 | ERROR    | etl:insert_function:71 - Database error inserting unique symbols into DIM_SYMBOL: attempt to write a readonly database
+2025-06-08 02:41:28 | ERROR    | etl:insert_function:71 - Database error inserting customers into DIM_CUSTOMERS: attempt to write a readonly database
+2025-06-08 02:41:28 | INFO     | etl:insert_function:68 - Inserted 0 accounts into DIM_ACCOUNTS (skipped 1746 accounts without valid customer)
+2025-06-08 02:41:28 | ERROR    | etl:insert_function:71 - Database error inserting transaction types into DIM_TYPE_TRANSACTIONS: attempt to write a readonly database
+2025-06-08 02:41:28 | INFO     | etl:run_etl:417 - --- Fact Table Processing ---
+2025-06-08 02:41:31 | ERROR    | etl:insert_function:71 - Database error inserting transaction records into FACT_TRANSACTIONS (skipped 0 invalid transactions): attempt to write a readonly database
+2025-06-08 02:41:31 | INFO     | etl:run_etl:425 - --- Querying Phase ---
+2025-06-08 02:41:31 | WARNING  | etl:query_data:351 - No budget data found in DIM_ACCOUNTS
+2025-06-08 02:41:31 | INFO     | etl:query_data:359 - Executing 10 queries from /home/david/Bsale-Technical-Test/src/db/query.sql
+2025-06-08 02:41:31 | INFO     | etl:query_data:377 - Query 1 returned no results
+2025-06-08 02:41:31 | INFO     | etl:query_data:372 - 
+Query 2 Results (1 rows):
+2025-06-08 02:41:31 | INFO     | etl:query_data:373 - clientes_con_mas_de_una_cuenta
+2025-06-08 02:41:31 | INFO     | etl:query_data:375 - 0
+2025-06-08 02:41:31 | INFO     | etl:query_data:372 - 
+Query 3 Results (1 rows):
+2025-06-08 02:41:31 | INFO     | etl:query_data:373 - promedio_monto_junio | numero_transacciones_junio
+2025-06-08 02:41:31 | INFO     | etl:query_data:375 - None | 0
+2025-06-08 02:41:31 | INFO     | etl:query_data:377 - Query 4 returned no results
+2025-06-08 02:41:31 | INFO     | etl:query_data:372 - 
+Query 5 Results (1 rows):
+2025-06-08 02:41:31 | INFO     | etl:query_data:373 - cuentas_con_tres_productos_y_commodity
+2025-06-08 02:41:31 | INFO     | etl:query_data:375 - 0
+2025-06-08 02:41:31 | INFO     | etl:query_data:377 - Query 6 returned no results
+2025-06-08 02:41:31 | INFO     | etl:query_data:377 - Query 7 returned no results
+2025-06-08 02:41:31 | INFO     | etl:query_data:372 - 
+Query 8 Results (1 rows):
+2025-06-08 02:41:31 | INFO     | etl:query_data:373 - promedio_compra | promedio_venta
+2025-06-08 02:41:31 | INFO     | etl:query_data:375 - None | None
+2025-06-08 02:41:31 | INFO     | etl:query_data:377 - Query 9 returned no results
+2025-06-08 02:41:31 | INFO     | etl:query_data:377 - Query 10 returned no results
+2025-06-08 02:41:31 | INFO     | etl:run_etl:428 - ETL process completed successfully
+2025-06-08 02:41:31 | INFO     | etl:run_etl:440 - Database connection closed
