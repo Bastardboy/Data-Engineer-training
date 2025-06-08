@@ -23,6 +23,55 @@ Se trabajó en ingles para demostrar disponibilidad para trabajar en grupo multi
 - **JSON** - Librería para la lectura y manipulación de datos en formato JSON.
 - **Datetime** - Librería para el manejo de las fechas, teniendo en cuenta el formato que se encuentra en los archivos JSON.
 
+## 🚀 Instrucciones de Ejecución Local
+
+1. **Clonar repositorio**
+```bash
+git clone https://github.com/Bastardboy/Bsale-Technical-Test.git
+cd Bsale-Technical-Test
+```
+
+2. **Moverse hacia la carpeta de trabajo**
+```bash
+cd src
+```
+
+3. **Ejecutar el script ETL**
+```bash
+python etl.py
+```
+
+
+## 📂 Estructura del Proyecto
+```bash
+Bsale-Technical-Test/
+├── src/
+│   │── db/
+│   │   ├── script.sql
+│   │   ├── query.sql
+│   │   ├── dw_financial.db 
+│   ├── sample_analytics_dataset/
+│   │   ├── sample_analytics.accounts.json
+│   │   ├── sample_analytics.customers.json
+│   │   ├── sample_analytics.transactions.json
+│   │── utils/
+│   │   ├── database.py
+│   │   ├── execute_query.py
+│   │   ├── loader.py
+│   │   ├── transform_accounts.py
+│   │   ├── transform_customers.py
+│   │   ├── transform_dates.py 
+│   │   ├── transform_symbols.py
+│   │   ├── transform_tot.py
+│   │   ├── transform_transactios.py
+│   │── etl.py
+│   │── check_data.py
+├── Explicación funciones.pdf
+├── requirements.txt
+├── .gitignore
+└── README.md
+```
+
 ## Resolución de Preguntas
 A continuación se presentarán los resultados obtenidos tras ejecutar el archivo query.sql
 
@@ -145,52 +194,5 @@ Podemos ver que al tener activado el estado de "Gold" en la cuenta el cliente te
 
 Las acciones de "amzn" son el interes para los clientes entre 30 y 59 años, que a su vez se les puede catalogar como el grupo con mayor estabilidad económica del grupo estudiado. Esto podría verse reflejado viendo el rango anterior, donde los adultos jóvenes, al estar en sus etapas formativas, poseen menos capital, aumentando las barreras de entrada
 
-## 📂 Estructura del Proyecto
-```bash
-Bsale-Technical-Test/
-├── src/
-│   │── db/
-│   │   ├── script.sql
-│   │   ├── query.sql
-│   │   ├── dw_financial.db 
-│   ├── sample_analytics_dataset/
-│   │   ├── sample_analytics.accounts.json
-│   │   ├── sample_analytics.customers.json
-│   │   ├── sample_analytics.transactions.json
-│   │── utils/
-│   │   ├── database.py
-│   │   ├── execute_query.py
-│   │   ├── loader.py
-│   │   ├── transform_accounts.py
-│   │   ├── transform_customers.py
-│   │   ├── transform_dates.py 
-│   │   ├── transform_symbols.py
-│   │   ├── transform_tot.py
-│   │   ├── transform_transactios.py
-│   │── etl.py
-│   │── check_data.py
-├── Explicación funciones.pdf
-├── requirements.txt
-├── .gitignore
-└── README.md
-```
-
-## 🚀 Instrucciones de Ejecución Local
-
-1. **Clonar repositorio**
-```bash
-git clone https://github.com/Bastardboy/Bsale-Technical-Test.git
-cd Bsale-Technical-Test
-```
-
-2. **Moverse hacia la carpeta de trabajo**
-```bash
-cd src
-```
-
-3. **Ejecutar el script ETL**
-```bash
-python etl.py
-```
 
 ## Desarrollado por David Pazán 
