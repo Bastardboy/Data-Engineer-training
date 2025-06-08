@@ -157,20 +157,10 @@ Bsale-Technical-Test/
 │   │   ├── sample_analytics.accounts.json
 │   │   ├── sample_analytics.customers.json
 │   │   ├── sample_analytics.transactions.json
-│   │── utils/
-│   │   ├── database.py
-│   │   ├── execute_query.py
-│   │   ├── loader.py
-│   │   ├── transform_accounts.py
-│   │   ├── transform_customers.py
-│   │   ├── transform_dates.py 
-│   │   ├── transform_symbols.py
-│   │   ├── transform_tot.py
-│   │   ├── transform_transactios.py
+│   │── etl.log
 │   │── etl.py
 │   │── check_data.py
 ├── Explicación funciones.pdf
-├── requirements.txt
 ├── .gitignore
 └── README.md
 ```
