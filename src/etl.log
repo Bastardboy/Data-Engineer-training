@@ -1,42 +1,73 @@
-2025-06-08 02:41:25 | INFO     | etl:run_etl:389 - Starting ETL process
-2025-06-08 02:41:25 | INFO     | etl:connect_to_db:38 - Successfully connected to database: /home/david/Bsale-Technical-Test/src/db/dw_financial.db
-2025-06-08 02:41:25 | INFO     | etl:create_tables:51 - Tables created successfully
-2025-06-08 02:41:25 | INFO     | etl:run_etl:397 - --- Extraction Phase ---
-2025-06-08 02:41:25 | INFO     | etl:load_json_file:58 - Loaded JSON file: sample_analytics.accounts.json
-2025-06-08 02:41:25 | INFO     | etl:load_json_file:58 - Loaded JSON file: sample_analytics.customers.json
-2025-06-08 02:41:25 | INFO     | etl:load_json_file:58 - Loaded JSON file: sample_analytics.transactions.json
-2025-06-08 02:41:26 | INFO     | etl:run_etl:406 - --- Transformation & Loading Phase ---
-2025-06-08 02:41:28 | ERROR    | etl:insert_function:71 - Database error inserting unique dates into DIM_DATES: attempt to write a readonly database
-2025-06-08 02:41:28 | ERROR    | etl:insert_function:71 - Database error inserting unique symbols into DIM_SYMBOL: attempt to write a readonly database
-2025-06-08 02:41:28 | ERROR    | etl:insert_function:71 - Database error inserting customers into DIM_CUSTOMERS: attempt to write a readonly database
-2025-06-08 02:41:28 | INFO     | etl:insert_function:68 - Inserted 0 accounts into DIM_ACCOUNTS (skipped 1746 accounts without valid customer)
-2025-06-08 02:41:28 | ERROR    | etl:insert_function:71 - Database error inserting transaction types into DIM_TYPE_TRANSACTIONS: attempt to write a readonly database
-2025-06-08 02:41:28 | INFO     | etl:run_etl:417 - --- Fact Table Processing ---
-2025-06-08 02:41:31 | ERROR    | etl:insert_function:71 - Database error inserting transaction records into FACT_TRANSACTIONS (skipped 0 invalid transactions): attempt to write a readonly database
-2025-06-08 02:41:31 | INFO     | etl:run_etl:425 - --- Querying Phase ---
-2025-06-08 02:41:31 | WARNING  | etl:query_data:351 - No budget data found in DIM_ACCOUNTS
-2025-06-08 02:41:31 | INFO     | etl:query_data:359 - Executing 10 queries from /home/david/Bsale-Technical-Test/src/db/query.sql
-2025-06-08 02:41:31 | INFO     | etl:query_data:377 - Query 1 returned no results
-2025-06-08 02:41:31 | INFO     | etl:query_data:372 - 
+2025-06-09 13:35:46 | INFO     | etl:run_etl:389 - Starting ETL process
+2025-06-09 13:35:46 | INFO     | etl:connect_to_db:38 - Successfully connected to database: /home/david/Bsale-Technical-Test/src/db/dw_financial.db
+2025-06-09 13:35:46 | INFO     | etl:create_tables:51 - Tables created successfully
+2025-06-09 13:35:46 | INFO     | etl:run_etl:397 - --- Extraction Phase ---
+2025-06-09 13:35:46 | INFO     | etl:load_json_file:58 - Loaded JSON file: sample_analytics.accounts.json
+2025-06-09 13:35:46 | INFO     | etl:load_json_file:58 - Loaded JSON file: sample_analytics.customers.json
+2025-06-09 13:35:46 | INFO     | etl:load_json_file:58 - Loaded JSON file: sample_analytics.transactions.json
+2025-06-09 13:35:47 | INFO     | etl:run_etl:406 - --- Transformation & Loading Phase ---
+2025-06-09 13:35:50 | INFO     | etl:insert_function:68 - Inserted 9030 unique dates into DIM_DATES
+2025-06-09 13:35:50 | INFO     | etl:insert_function:68 - Inserted 18 unique symbols into DIM_SYMBOL
+2025-06-09 13:35:50 | INFO     | etl:insert_function:68 - Inserted 500 customers into DIM_CUSTOMERS
+2025-06-09 13:35:50 | INFO     | etl:insert_function:68 - Inserted 1746 accounts into DIM_ACCOUNTS (skipped 0 accounts without valid customer)
+2025-06-09 13:35:50 | INFO     | etl:insert_function:68 - Inserted 2 transaction types into DIM_TYPE_TRANSACTIONS
+2025-06-09 13:35:50 | INFO     | etl:run_etl:417 - --- Fact Table Processing ---
+2025-06-09 13:35:58 | INFO     | etl:insert_function:68 - Inserted 88119 transaction records into FACT_TRANSACTIONS (skipped 0 invalid transactions)
+2025-06-09 13:35:58 | INFO     | etl:run_etl:425 - --- Querying Phase ---
+2025-06-09 13:35:58 | INFO     | etl:query_data:345 - Account Limit Statistics:
+2025-06-09 13:35:58 | INFO     | etl:query_data:346 -   Average: 9955.90
+2025-06-09 13:35:58 | INFO     | etl:query_data:347 -   Minimum: 3000.00
+2025-06-09 13:35:58 | INFO     | etl:query_data:348 -   Maximum: 10000.00
+2025-06-09 13:35:58 | INFO     | etl:query_data:349 -   Standard Deviation: 354.65
+2025-06-09 13:35:58 | INFO     | etl:query_data:359 - Executing 10 queries from /home/david/Bsale-Technical-Test/src/db/query.sql
+2025-06-09 13:35:58 | INFO     | etl:query_data:377 - Query 1 returned no results
+2025-06-09 13:35:58 | INFO     | etl:query_data:372 - 
 Query 2 Results (1 rows):
-2025-06-08 02:41:31 | INFO     | etl:query_data:373 - clientes_con_mas_de_una_cuenta
-2025-06-08 02:41:31 | INFO     | etl:query_data:375 - 0
-2025-06-08 02:41:31 | INFO     | etl:query_data:372 - 
+2025-06-09 13:35:58 | INFO     | etl:query_data:373 - clientes_con_mas_de_una_cuenta
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - 417
+2025-06-09 13:35:58 | INFO     | etl:query_data:372 - 
 Query 3 Results (1 rows):
-2025-06-08 02:41:31 | INFO     | etl:query_data:373 - promedio_monto_junio | numero_transacciones_junio
-2025-06-08 02:41:31 | INFO     | etl:query_data:375 - None | 0
-2025-06-08 02:41:31 | INFO     | etl:query_data:377 - Query 4 returned no results
-2025-06-08 02:41:31 | INFO     | etl:query_data:372 - 
+2025-06-09 13:35:58 | INFO     | etl:query_data:373 - promedio_monto_junio | numero_transacciones_junio
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - 5003.42 | 7520
+2025-06-09 13:35:58 | INFO     | etl:query_data:372 - 
+Query 4 Results (1 rows):
+2025-06-09 13:35:58 | INFO     | etl:query_data:373 - id_account
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - 909802
+2025-06-09 13:35:58 | INFO     | etl:query_data:372 - 
 Query 5 Results (1 rows):
-2025-06-08 02:41:31 | INFO     | etl:query_data:373 - cuentas_con_tres_productos_y_commodity
-2025-06-08 02:41:31 | INFO     | etl:query_data:375 - 0
-2025-06-08 02:41:31 | INFO     | etl:query_data:377 - Query 6 returned no results
-2025-06-08 02:41:31 | INFO     | etl:query_data:377 - Query 7 returned no results
-2025-06-08 02:41:31 | INFO     | etl:query_data:372 - 
+2025-06-09 13:35:58 | INFO     | etl:query_data:373 - cuentas_con_tres_productos_y_commodity
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - 202
+2025-06-09 13:35:58 | INFO     | etl:query_data:372 - 
+Query 6 Results (1 rows):
+2025-06-09 13:35:58 | INFO     | etl:query_data:373 - name_customer
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - John Williams
+2025-06-09 13:35:58 | INFO     | etl:query_data:372 - 
+Query 7 Results (1 rows):
+2025-06-09 13:35:58 | INFO     | etl:query_data:373 - username
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - aspencer
+2025-06-09 13:35:58 | INFO     | etl:query_data:372 - 
 Query 8 Results (1 rows):
-2025-06-08 02:41:31 | INFO     | etl:query_data:373 - promedio_compra | promedio_venta
-2025-06-08 02:41:31 | INFO     | etl:query_data:375 - None | None
-2025-06-08 02:41:31 | INFO     | etl:query_data:377 - Query 9 returned no results
-2025-06-08 02:41:31 | INFO     | etl:query_data:377 - Query 10 returned no results
-2025-06-08 02:41:31 | INFO     | etl:run_etl:428 - ETL process completed successfully
-2025-06-08 02:41:31 | INFO     | etl:run_etl:440 - Database connection closed
+2025-06-09 13:35:58 | INFO     | etl:query_data:373 - promedio_compra | promedio_venta
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - 4986.17 | 4996.42
+2025-06-09 13:35:58 | INFO     | etl:query_data:372 - 
+Query 9 Results (10 rows):
+2025-06-09 13:35:58 | INFO     | etl:query_data:373 - beneficios_gold
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - 24 hour dedicated line
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - airline lounge access
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - car rental insurance
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - concert tickets
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - concierge services
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - dedicated account representative
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - financial planning assistance
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - shopping discounts
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - sports tickets
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - travel insurance
+2025-06-09 13:35:58 | INFO     | etl:query_data:372 - 
+Query 10 Results (4 rows):
+2025-06-09 13:35:58 | INFO     | etl:query_data:373 - rango_etario | cantidad_clientes
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - [20-29] | 11
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - [30-39] | 55
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - [40-49] | 45
+2025-06-09 13:35:58 | INFO     | etl:query_data:375 - [50-59] | 40
+2025-06-09 13:35:58 | INFO     | etl:run_etl:428 - ETL process completed successfully
+2025-06-09 13:35:58 | INFO     | etl:run_etl:440 - Database connection closed
