@@ -1,7 +1,5 @@
-# Bsale Technical Test
-Prueba técnica para postular al cargo Ingeniero de Datos Jr.
+# Trabajo autodidacta para el manejo de datos
 ## Descripción
-A continuación se presenta mi resolución para el desafío técnico de Bsale.
 El objetivo es crear un proceso ETL que permita limpiar, transformar y cargar datos desde los datos formato JSON a una base de datos SQLite. El proceso de trabajo consta de:
 - **Planteamiento y diseño del Data Warehouse**
 - **Creación de la base de datos SQLite**
