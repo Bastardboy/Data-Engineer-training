@@ -25,8 +25,8 @@ Se trabajó en ingles para demostrar disponibilidad para trabajar en grupo multi
 
 1. **Clonar repositorio**
 ```bash
-git clone https://github.com/Bastardboy/Bsale-Technical-Test.git
-cd Bsale-Technical-Test
+git clone https://github.com/Bastardboy/Data-Engineer-training.git
+cd Data-Engineer-training
 ```
 
 2. **Moverse hacia la carpeta de trabajo**
@@ -42,7 +42,7 @@ python etl.py
 
 ## 📂 Estructura del Proyecto
 ```bash
-Bsale-Technical-Test/
+Data-Engineer-training/
 ├── src/
 │   │── db/
 │   │   ├── script.sql
